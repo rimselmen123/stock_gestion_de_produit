@@ -66,9 +66,5 @@ public class InventoryItemUpdateDTO {
     @NotBlank(message = "Unit ID is required")
     private String unitId;
 
-    /**
-     * The updated brand ID for this item.
-     * Optional field.
-     */
-    private String brandId;
+
 }

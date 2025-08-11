@@ -66,9 +66,5 @@ public class InventoryItemCreateDTO {
     @NotBlank(message = "Unit ID is required")
     private String unitId;
 
-    /**
-     * The brand ID for this item.
-     * Optional field.
-     */
-    private String brandId;
+
 }

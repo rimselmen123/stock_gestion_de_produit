@@ -42,7 +42,5 @@ public class InventoryItem {
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
 
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
+
 }

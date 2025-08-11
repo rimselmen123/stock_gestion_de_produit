@@ -25,12 +25,13 @@ import java.util.Optional;
 /**
  * REST Controller for InventoryItemCategory management operations.
  * Provides CRUD endpoints for category entities with proper validation and error handling.
- * 
+ *
  * @author Generated
  * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1/categories")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Category Management", description = "APIs for managing inventory item categories")
@@ -38,7 +39,6 @@ public class CategoryController {
 
     private final InventoryItemCategoryService categoryService;
     private final CategoryMapper categoryMapper;
-
     /**
      * Create a new category.
      * 
@@ -118,10 +118,8 @@ public class CategoryController {
     public ResponseEntity<List<CategorySummaryDTO>> getCategoriesSummary() {
 
         log.debug("Retrieving categories summary");
-
         List<InventoryItemCategory> categories = categoryService.findAll();
         List<CategorySummaryDTO> summaryDTOs = categoryMapper.toSummaryDTOList(categories);
-
         log.debug("Retrieved {} category summaries", categories.size());
         return ResponseEntity.ok(summaryDTOs);
     }

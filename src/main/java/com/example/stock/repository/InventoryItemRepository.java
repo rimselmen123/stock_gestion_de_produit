@@ -2,7 +2,7 @@ package com.example.stock.repository;
 
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
-import com.example.stock.entity.Brand;
+
 import com.example.stock.entity.Unit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,13 +40,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     @Query("SELECT i FROM InventoryItem i WHERE i.category.id = :categoryId")
     List<InventoryItem> findByCategoryId(@Param("categoryId") String categoryId);
     
-    /**
-     * Find inventory items by brand.
-     * 
-     * @param brand the Brand to search for
-     * @return list of InventoryItem entities of the specified brand
-     */
-    List<InventoryItem> findByBrand(Brand brand);
+
     
     /**
      * Find inventory items by unit.
@@ -83,14 +77,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     @Query("SELECT i FROM InventoryItem i WHERE i.thresholdQuantity <= :threshold")
     List<InventoryItem> findItemsNearThreshold(@Param("threshold") int threshold);
     
-    /**
-     * Find inventory items by category and brand.
-     * 
-     * @param category the InventoryItemCategory
-     * @param brand the Brand
-     * @return list of InventoryItem entities matching both category and brand
-     */
-    List<InventoryItem> findByCategoryAndBrand(InventoryItemCategory category, Brand brand);
+
     
     /**
      * Find an inventory item by name (exact match, case-sensitive).

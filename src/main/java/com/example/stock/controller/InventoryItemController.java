@@ -6,12 +6,10 @@ import com.example.stock.dto.inventoryitem.InventoryItemSummaryDTO;
 import com.example.stock.dto.inventoryitem.InventoryItemUpdateDTO;
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
-import com.example.stock.entity.Brand;
 import com.example.stock.entity.Unit;
 import com.example.stock.mapper.InventoryItemMapper;
 import com.example.stock.service.InventoryItemService;
 import com.example.stock.service.InventoryItemCategoryService;
-import com.example.stock.service.BrandService;
 import com.example.stock.service.UnitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,13 +37,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/inventory-items")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Slf4j
 @Tag(name = "Inventory Item Management", description = "APIs for managing inventory items")
 public class InventoryItemController {
 
     private final InventoryItemService inventoryItemService;
     private final InventoryItemCategoryService categoryService;
-    private final BrandService brandService;
     private final UnitService unitService;
     private final InventoryItemMapper inventoryItemMapper;
 
@@ -76,8 +74,8 @@ public class InventoryItemController {
             InventoryItem inventoryItemEntity = inventoryItemMapper.toEntity(createDTO);
             
             // Set relationships
-            setEntityRelationships(inventoryItemEntity, createDTO.getCategoryId(), 
-                                 createDTO.getUnitId(), createDTO.getBrandId());
+            setEntityRelationships(inventoryItemEntity, createDTO.getCategoryId(),
+                                 createDTO.getUnitId());
             
             InventoryItem createdItem = inventoryItemService.createItem(inventoryItemEntity);
             InventoryItemResponseDTO responseDTO = inventoryItemMapper.toResponseDTO(createdItem);
@@ -225,13 +223,12 @@ public class InventoryItemController {
                 updateDTO.getReorderQuantity(),
                 updateDTO.getUnitPurchasePrice(),
                 updateDTO.getCategoryId(),
-                updateDTO.getUnitId(),
-                updateDTO.getBrandId()
+                updateDTO.getUnitId()
             ));
 
             // Set relationships
             setEntityRelationships(itemToUpdate, updateDTO.getCategoryId(),
-                                 updateDTO.getUnitId(), updateDTO.getBrandId());
+                                 updateDTO.getUnitId());
 
             InventoryItem updatedItem = inventoryItemService.updateItem(id, itemToUpdate);
             InventoryItemResponseDTO responseDTO = inventoryItemMapper.toResponseDTO(updatedItem);
@@ -358,9 +355,8 @@ public class InventoryItemController {
      * @param item the inventory item entity
      * @param categoryId the category ID
      * @param unitId the unit ID
-     * @param brandId the brand ID (optional)
      */
-    private void setEntityRelationships(InventoryItem item, String categoryId, String unitId, String brandId) {
+    private void setEntityRelationships(InventoryItem item, String categoryId, String unitId) {
         // Set category
         Optional<InventoryItemCategory> categoryOptional = categoryService.findById(categoryId);
         if (categoryOptional.isEmpty()) {
@@ -374,16 +370,5 @@ public class InventoryItemController {
             throw new IllegalArgumentException("Unit not found with ID: " + unitId);
         }
         item.setUnit(unitOptional.get());
-
-        // Set brand (optional)
-        if (brandId != null && !brandId.trim().isEmpty()) {
-            Optional<Brand> brandOptional = brandService.findById(brandId);
-            if (brandOptional.isEmpty()) {
-                throw new IllegalArgumentException("Brand not found with ID: " + brandId);
-            }
-            item.setBrand(brandOptional.get());
-        } else {
-            item.setBrand(null);
-        }
     }
 }

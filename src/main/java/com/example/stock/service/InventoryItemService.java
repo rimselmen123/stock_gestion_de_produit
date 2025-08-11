@@ -2,7 +2,7 @@ package com.example.stock.service;
 
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
-import com.example.stock.entity.Brand;
+
 import com.example.stock.entity.Unit;
 import java.math.BigDecimal;
 import java.util.List;
@@ -60,13 +60,7 @@ public interface InventoryItemService {
      */
     List<InventoryItem> findByCategoryId(String categoryId);
     
-    /**
-     * Find inventory items by brand.
-     * 
-     * @param brand the brand entity
-     * @return list of items of the brand
-     */
-    List<InventoryItem> findByBrand(Brand brand);
+
     
     /**
      * Find inventory items by unit.

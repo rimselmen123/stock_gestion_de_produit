@@ -22,15 +22,15 @@ import java.util.List;
 @Mapper(
     componentModel = "spring",
     nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-    uses = {BrandMapper.class, UnitMapper.class, CategoryMapper.class}
+    uses = {UnitMapper.class, CategoryMapper.class}
 )
 public interface InventoryItemMapper {
 
     /**
      * Maps InventoryItemCreateDTO to InventoryItem entity.
      * Used when creating a new inventory item from client request.
-     * Note: Relationships (category, unit, brand) need to be set separately.
-     * 
+     * Note: Relationships (category, unit) need to be set separately.
+     *
      * @param createDTO the inventory item creation data
      * @return InventoryItem entity ready for persistence
      */
@@ -39,7 +39,6 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
-    @Mapping(target = "brand", ignore = true)
     InventoryItem toEntity(InventoryItemCreateDTO createDTO);
 
     /**
@@ -61,15 +60,14 @@ public interface InventoryItemMapper {
      */
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "unitSymbol", source = "unit.symbol")
-    @Mapping(target = "brandName", source = "brand.name")
     @Mapping(target = "isLowStock", expression = "java(calculateIsLowStock(inventoryItem))")
     InventoryItemSummaryDTO toSummaryDTO(InventoryItem inventoryItem);
 
     /**
      * Maps InventoryItemUpdateDTO to existing InventoryItem entity.
      * Updates only the provided fields, ignoring null values.
-     * Note: Relationships (category, unit, brand) need to be set separately.
-     * 
+     * Note: Relationships (category, unit) need to be set separately.
+     *
      * @param updateDTO the inventory item update data
      * @param inventoryItem the existing inventory item entity to update
      */
@@ -78,7 +76,6 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
-    @Mapping(target = "brand", ignore = true)
     void updateEntityFromDTO(InventoryItemUpdateDTO updateDTO, @MappingTarget InventoryItem inventoryItem);
 
     /**

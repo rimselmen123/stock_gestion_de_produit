@@ -32,6 +32,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/units")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Slf4j
 @Tag(name = "Unit Management", description = "APIs for managing unit information")
 public class UnitController {

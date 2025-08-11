@@ -1,6 +1,6 @@
 package com.example.stock.dto.inventoryitem;
 
-import com.example.stock.dto.brand.BrandSummaryDTO;
+
 import com.example.stock.dto.category.CategorySummaryDTO;
 import com.example.stock.dto.unit.UnitSummaryDTO;
 import lombok.AllArgsConstructor;
@@ -68,10 +68,7 @@ public class InventoryItemResponseDTO {
      */
     private UnitSummaryDTO unit;
 
-    /**
-     * The brand for this item (optional).
-     */
-    private BrandSummaryDTO brand;
+
 
     /**
      * Indicates if the item is near threshold (low stock).

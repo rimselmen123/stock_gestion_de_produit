@@ -2,7 +2,7 @@ package com.example.stock.service.impl;
 
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
-import com.example.stock.entity.Brand;
+
 import com.example.stock.entity.Unit;
 import com.example.stock.repository.InventoryItemRepository;
 import com.example.stock.service.InventoryItemService;
@@ -75,7 +75,6 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         existingItem.setUnitPurchasePrice(item.getUnitPurchasePrice());
         existingItem.setCategory(item.getCategory());
         existingItem.setUnit(item.getUnit());
-        existingItem.setBrand(item.getBrand());
         existingItem.setUpdatedAt(LocalDateTime.now());
         
         InventoryItem updatedItem = inventoryItemRepository.save(existingItem);
@@ -105,12 +104,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         return inventoryItemRepository.findByCategoryId(categoryId);
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findByBrand(Brand brand) {
-        log.debug("Finding inventory items by brand: {}", brand != null ? brand.getName() : "null");
-        return inventoryItemRepository.findByBrand(brand);
-    }
+
     
     @Override
     @Transactional(readOnly = true)

@@ -50,10 +50,7 @@ public class InventoryItemSummaryDTO {
      */
     private String unitSymbol;
 
-    /**
-     * The brand name for this item (optional).
-     */
-    private String brandName;
+
 
     /**
      * Indicates if the item is near threshold (low stock).
