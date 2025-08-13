@@ -18,8 +18,6 @@ public class InventoryItemCategory {
 
     private String name;
 
-    private String description;
-
     @Column(name = "branch_id", nullable = false)
     private String branchId;
 

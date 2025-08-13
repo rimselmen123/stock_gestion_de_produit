@@ -1,10 +1,9 @@
 package com.example.stock.dto.inventoryitem;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 /**
  * Data Transfer Object for InventoryItem summary information.
@@ -31,29 +30,20 @@ public class InventoryItemSummaryDTO {
     private String name;
 
     /**
-     * The unit purchase price of the item.
-     */
-    private BigDecimal unitPurchasePrice;
-
-    /**
      * The threshold quantity for low stock alerts.
      */
+    @JsonProperty("threshold_quantity")
     private Integer thresholdQuantity;
 
     /**
      * The category name this item belongs to.
      */
+    @JsonProperty("category_name")
     private String categoryName;
 
     /**
      * The unit symbol for this item.
      */
+    @JsonProperty("unit_symbol")
     private String unitSymbol;
-
-
-
-    /**
-     * Indicates if the item is near threshold (low stock).
-     */
-    private Boolean isLowStock;
 }

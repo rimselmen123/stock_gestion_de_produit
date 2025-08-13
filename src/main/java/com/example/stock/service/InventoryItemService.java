@@ -1,12 +1,9 @@
 package com.example.stock.service;
 
-import com.example.stock.entity.InventoryItem;
-import com.example.stock.entity.InventoryItemCategory;
-
-import com.example.stock.entity.Unit;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import com.example.stock.dto.common.PaginatedResponse;
+import com.example.stock.dto.inventoryitem.InventoryItemCreateDTO;
+import com.example.stock.dto.inventoryitem.InventoryItemResponseDTO;
+import com.example.stock.dto.inventoryitem.InventoryItemUpdateDTO;
 
 /**
  * Service interface for InventoryItem entity operations.
@@ -18,103 +15,54 @@ import java.util.Optional;
 public interface InventoryItemService {
     
     /**
+     * Find all inventory items with pagination, search, and sorting.
+     * 
+     * @param search Search term for name field
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with inventory items
+     */
+    PaginatedResponse<InventoryItemResponseDTO> findAllWithPagination(
+        String search, int page, int perPage, String sortField, String sortDirection);
+    
+    /**
+     * Find inventory item by ID or throw exception if not found.
+     * 
+     * @param id Inventory item ID
+     * @return Inventory item response DTO
+     * @throws ResourceNotFoundException if inventory item not found
+     */
+    InventoryItemResponseDTO findByIdOrThrow(String id);
+    
+    /**
      * Create a new inventory item.
      * 
-     * @param item the inventory item entity to create
-     * @return the created inventory item
-     * @throws IllegalArgumentException if item data is invalid
+     * @param createDTO Inventory item creation data
+     * @return Created inventory item response DTO
+     * @throws IllegalArgumentException if inventory item data is invalid
+     * @throws ForeignKeyConstraintException if referenced category or unit doesn't exist
      */
-    InventoryItem createItem(InventoryItem item);
+    InventoryItemResponseDTO create(InventoryItemCreateDTO createDTO);
     
     /**
      * Update an existing inventory item.
      * 
-     * @param id the item ID
-     * @param item the updated item data
-     * @return the updated inventory item
-     * @throws RuntimeException if item not found
+     * @param id Inventory item ID
+     * @param updateDTO Inventory item update data
+     * @return Updated inventory item response DTO
+     * @throws ResourceNotFoundException if inventory item not found
+     * @throws ForeignKeyConstraintException if referenced category or unit doesn't exist
      */
-    InventoryItem updateItem(String id, InventoryItem item);
-    
-    /**
-     * Find inventory item by ID.
-     * 
-     * @param id the item ID
-     * @return Optional containing the item if found
-     */
-    Optional<InventoryItem> findById(String id);
-    
-    /**
-     * Find inventory item by name.
-     * 
-     * @param name the item name
-     * @return Optional containing the item if found
-     */
-    Optional<InventoryItem> findByName(String name);
-    
-    /**
-     * Find inventory items by category.
-     * 
-     * @param categoryId the category ID
-     * @return list of items in the category
-     */
-    List<InventoryItem> findByCategoryId(String categoryId);
-    
-
-    
-    /**
-     * Find inventory items by unit.
-     * 
-     * @param unit the unit entity
-     * @return list of items with the unit
-     */
-    List<InventoryItem> findByUnit(Unit unit);
-    
-    /**
-     * Search inventory items by name.
-     * 
-     * @param name the partial name to search
-     * @return list of matching items
-     */
-    List<InventoryItem> searchByName(String name);
-    
-    /**
-     * Find items by price range.
-     * 
-     * @param minPrice minimum price (inclusive)
-     * @param maxPrice maximum price (inclusive)
-     * @return list of items within price range
-     */
-    List<InventoryItem> findByPriceRange(BigDecimal minPrice, BigDecimal maxPrice);
-    
-    /**
-     * Find items near threshold (low stock items).
-     * 
-     * @param threshold the threshold quantity
-     * @return list of items at or below threshold
-     */
-    List<InventoryItem> findItemsNearThreshold(int threshold);
-    
-    /**
-     * Get all inventory items ordered by name.
-     * 
-     * @return list of all items ordered by name
-     */
-    List<InventoryItem> findAllOrderByName();
+    InventoryItemResponseDTO update(String id, InventoryItemUpdateDTO updateDTO);
     
     /**
      * Delete inventory item by ID.
      * 
-     * @param id the item ID to delete
-     * @throws RuntimeException if item not found
+     * @param id Inventory item ID to delete
+     * @throws ResourceNotFoundException if inventory item not found
+     * @throws DeleteConstraintException if inventory item has stock records or movement history
      */
-    void deleteById(String id);
-    
-    /**
-     * Count items by category.
-     * 
-     * @param category the category entity
-     * @return number of items in the category
-     */
-    long countByCategory(InventoryItemCategory category);
+    void delete(String id);
 }

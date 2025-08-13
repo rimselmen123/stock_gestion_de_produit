@@ -1,8 +1,9 @@
 package com.example.stock.service;
 
-import com.example.stock.entity.InventoryItemCategory;
-import java.util.List;
-import java.util.Optional;
+import com.example.stock.dto.common.PaginatedResponse;
+import com.example.stock.dto.category.CategoryCreateDTO;
+import com.example.stock.dto.category.CategoryResponseDTO;
+import com.example.stock.dto.category.CategoryUpdateDTO;
 
 /**
  * Service interface for InventoryItemCategory entity operations.
@@ -14,87 +15,52 @@ import java.util.Optional;
 public interface InventoryItemCategoryService {
     
     /**
+     * Find all categories with pagination, search, and sorting.
+     * 
+     * @param search Search term for name field
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with categories
+     */
+    PaginatedResponse<CategoryResponseDTO> findAllWithPagination(
+        String search, int page, int perPage, String sortField, String sortDirection);
+    
+    /**
+     * Find category by ID or throw exception if not found.
+     * 
+     * @param id Category ID
+     * @return Category response DTO
+     * @throws ResourceNotFoundException if category not found
+     */
+    CategoryResponseDTO findByIdOrThrow(String id);
+    
+    /**
      * Create a new category.
      * 
-     * @param category the category entity to create
-     * @return the created category
+     * @param createDTO Category creation data
+     * @return Created category response DTO
      * @throws IllegalArgumentException if category data is invalid
      */
-    InventoryItemCategory createCategory(InventoryItemCategory category);
+    CategoryResponseDTO create(CategoryCreateDTO createDTO);
     
     /**
      * Update an existing category.
      * 
-     * @param id the category ID
-     * @param category the updated category data
-     * @return the updated category
-     * @throws RuntimeException if category not found
+     * @param id Category ID
+     * @param updateDTO Category update data
+     * @return Updated category response DTO
+     * @throws ResourceNotFoundException if category not found
      */
-    InventoryItemCategory updateCategory(String id, InventoryItemCategory category);
-    
-    /**
-     * Find category by ID.
-     * 
-     * @param id the category ID
-     * @return Optional containing the category if found
-     */
-    Optional<InventoryItemCategory> findById(String id);
-    
-    /**
-     * Find categories by branch ID.
-     * 
-     * @param branchId the branch ID
-     * @return list of categories for the branch
-     */
-    List<InventoryItemCategory> findByBranchId(String branchId);
-    
-    /**
-     * Find category by name and branch ID.
-     * 
-     * @param name the category name
-     * @param branchId the branch ID
-     * @return Optional containing the category if found
-     */
-    Optional<InventoryItemCategory> findByNameAndBranchId(String name, String branchId);
-    
-    /**
-     * Search categories by name for a specific branch.
-     * 
-     * @param name the partial name to search
-     * @param branchId the branch ID
-     * @return list of matching categories
-     */
-    List<InventoryItemCategory> searchByNameAndBranchId(String name, String branchId);
-    
-    /**
-     * Get all categories ordered by name.
-     * 
-     * @return list of all categories ordered by name
-     */
-    List<InventoryItemCategory> findAll();
+    CategoryResponseDTO update(String id, CategoryUpdateDTO updateDTO);
     
     /**
      * Delete category by ID.
      * 
-     * @param id the category ID to delete
-     * @throws RuntimeException if category not found or has dependencies
+     * @param id Category ID to delete
+     * @throws ResourceNotFoundException if category not found
+     * @throws DeleteConstraintException if category is referenced by inventory items
      */
-    void deleteById(String id);
-    
-    /**
-     * Count categories by branch.
-     * 
-     * @param branchId the branch ID
-     * @return number of categories in the branch
-     */
-    long countByBranchId(String branchId);
-    
-    /**
-     * Check if category exists by name and branch.
-     * 
-     * @param name the category name
-     * @param branchId the branch ID
-     * @return true if exists, false otherwise
-     */
-    boolean existsByNameAndBranchId(String name, String branchId);
+    void delete(String id);
 }

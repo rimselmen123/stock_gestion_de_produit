@@ -20,23 +20,9 @@ public class CategoryCreateDTO {
 
     /**
      * The name of the category.
-     * Must be unique per branch and between 2-100 characters.
+     * Must not be blank and cannot exceed 255 characters.
      */
     @NotBlank(message = "Category name is required")
-    @Size(min = 2, max = 100, message = "Category name must be between 2 and 100 characters")
+    @Size(max = 255, message = "Category name must not exceed 255 characters")
     private String name;
-
-    /**
-     * Optional description of the category.
-     * Maximum 500 characters.
-     */
-    @Size(max = 500, message = "Category description cannot exceed 500 characters")
-    private String description;
-
-    /**
-     * The branch ID this category belongs to.
-     * Required field.
-     */
-    @NotBlank(message = "Branch ID is required")
-    private String branchId;
 }

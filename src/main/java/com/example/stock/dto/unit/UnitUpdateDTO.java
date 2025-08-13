@@ -19,18 +19,18 @@ import lombok.NoArgsConstructor;
 public class UnitUpdateDTO {
 
     /**
-     * The updated name of the unit.
-     * Must be between 2-50 characters.
+     * The name of the unit.
+     * Must not be blank and cannot exceed 255 characters.
      */
     @NotBlank(message = "Unit name is required")
-    @Size(min = 2, max = 50, message = "Unit name must be between 2 and 50 characters")
+    @Size(max = 255, message = "Unit name must not exceed 255 characters")
     private String name;
 
     /**
-     * The updated symbol of the unit.
-     * Must be unique and between 1-10 characters.
+     * The symbol of the unit.
+     * Must not be blank and cannot exceed 10 characters.
      */
     @NotBlank(message = "Unit symbol is required")
-    @Size(min = 1, max = 10, message = "Unit symbol must be between 1 and 10 characters")
+    @Size(max = 10, message = "Unit symbol must not exceed 10 characters")
     private String symbol;
 }

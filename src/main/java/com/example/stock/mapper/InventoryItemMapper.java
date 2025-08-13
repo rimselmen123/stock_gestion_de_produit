@@ -48,7 +48,6 @@ public interface InventoryItemMapper {
      * @param inventoryItem the inventory item entity
      * @return InventoryItemResponseDTO with complete inventory item information
      */
-    @Mapping(target = "isLowStock", expression = "java(calculateIsLowStock(inventoryItem))")
     InventoryItemResponseDTO toResponseDTO(InventoryItem inventoryItem);
 
     /**
@@ -60,7 +59,6 @@ public interface InventoryItemMapper {
      */
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "unitSymbol", source = "unit.symbol")
-    @Mapping(target = "isLowStock", expression = "java(calculateIsLowStock(inventoryItem))")
     InventoryItemSummaryDTO toSummaryDTO(InventoryItem inventoryItem);
 
     /**
@@ -93,19 +91,4 @@ public interface InventoryItemMapper {
      * @return list of InventoryItemSummaryDTOs
      */
     List<InventoryItemSummaryDTO> toSummaryDTOList(List<InventoryItem> inventoryItems);
-
-    /**
-     * Helper method to calculate if an item is low stock.
-     * An item is considered low stock if its current quantity would be at or below threshold.
-     * Since we don't have current quantity in this entity, we'll use a simple heuristic.
-     * 
-     * @param inventoryItem the inventory item entity
-     * @return true if item should be considered low stock
-     */
-    default Boolean calculateIsLowStock(InventoryItem inventoryItem) {
-        // For now, we'll return false as we don't have current stock quantity
-        // This would typically be calculated based on actual stock levels
-        // which might come from a separate stock tracking system
-        return false;
-    }
 }

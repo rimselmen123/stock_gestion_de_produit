@@ -1,13 +1,12 @@
 package com.example.stock.dto.inventoryitem;
 
-
-import com.example.stock.dto.category.CategorySummaryDTO;
-import com.example.stock.dto.unit.UnitSummaryDTO;
+import com.example.stock.dto.category.CategoryResponseDTO;
+import com.example.stock.dto.unit.UnitResponseDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -34,45 +33,47 @@ public class InventoryItemResponseDTO {
     private String name;
 
     /**
+     * The category ID this item belongs to.
+     */
+    @JsonProperty("inventory_item_category_id")
+    private String inventoryItemCategoryId;
+
+    /**
+     * The unit ID for this item.
+     */
+    @JsonProperty("unit_id")
+    private String unitId;
+
+    /**
      * The threshold quantity for low stock alerts.
      */
+    @JsonProperty("threshold_quantity")
     private Integer thresholdQuantity;
 
     /**
      * The quantity to reorder when stock is low.
      */
+    @JsonProperty("reorder_quantity")
     private Integer reorderQuantity;
-
-    /**
-     * The unit purchase price of the item.
-     */
-    private BigDecimal unitPurchasePrice;
-
     /**
      * Timestamp when the inventory item was created.
      */
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     /**
      * Timestamp when the inventory item was last updated.
      */
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
     /**
      * The category this item belongs to.
      */
-    private CategorySummaryDTO category;
+    private CategoryResponseDTO category;
 
     /**
      * The unit for this item.
      */
-    private UnitSummaryDTO unit;
-
-
-
-    /**
-     * Indicates if the item is near threshold (low stock).
-     * Calculated field for convenience.
-     */
-    private Boolean isLowStock;
+    private UnitResponseDTO unit;
 }

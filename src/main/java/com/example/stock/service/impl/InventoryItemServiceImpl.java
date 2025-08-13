@@ -1,26 +1,38 @@
 package com.example.stock.service.impl;
 
+import com.example.stock.dto.common.PaginatedResponse;
+import com.example.stock.dto.common.PaginationInfo;
+import com.example.stock.dto.category.CategoryResponseDTO;
+import com.example.stock.dto.inventoryitem.InventoryItemCreateDTO;
+import com.example.stock.dto.inventoryitem.InventoryItemResponseDTO;
+import com.example.stock.dto.inventoryitem.InventoryItemUpdateDTO;
+import com.example.stock.dto.unit.UnitResponseDTO;
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
-
 import com.example.stock.entity.Unit;
+import com.example.stock.exception.DeleteConstraintException;
+import com.example.stock.exception.ForeignKeyConstraintException;
+import com.example.stock.exception.ResourceNotFoundException;
+import com.example.stock.repository.InventoryItemCategoryRepository;
 import com.example.stock.repository.InventoryItemRepository;
+import com.example.stock.repository.UnitRepository;
 import com.example.stock.service.InventoryItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Implementation of InventoryItemService interface.
- * Handles all business logic for InventoryItem entity operations.
+ * Handles all business logic for Inventory Item entity operations.
  * 
  * @author Generated
  * @since 1.0
@@ -32,198 +44,171 @@ import java.util.UUID;
 public class InventoryItemServiceImpl implements InventoryItemService {
     
     private final InventoryItemRepository inventoryItemRepository;
+    private final InventoryItemCategoryRepository categoryRepository;
+    private final UnitRepository unitRepository;
     
     @Override
-    public InventoryItem createItem(InventoryItem item) {
-        log.info("Creating new inventory item with name: {}", item.getName());
+    @Transactional(readOnly = true)
+    public PaginatedResponse<InventoryItemResponseDTO> findAllWithPagination(
+            String search, int page, int perPage, String sortField, String sortDirection) {
         
-        validateInventoryItemData(item);
+        log.debug("Finding inventory items with pagination - search: {}, page: {}, perPage: {}", search, page, perPage);
         
-        // Check if item name already exists
-        if (inventoryItemRepository.findByName(item.getName()).isPresent()) {
-            throw new IllegalArgumentException("Inventory item with name '" + item.getName() + "' already exists");
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+        
+        // Create sort object
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, mapSortField(sortField));
+        
+        // Create pageable (Spring uses 0-based indexing)
+        Pageable pageable = PageRequest.of(page - 1, perPage, sort);
+        
+        // Execute query
+        Page<InventoryItem> inventoryItemPage;
+        if (search != null && !search.trim().isEmpty()) {
+            inventoryItemPage = inventoryItemRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+        } else {
+            inventoryItemPage = inventoryItemRepository.findAll(pageable);
         }
         
-        item.setId(UUID.randomUUID().toString());
-        item.setCreatedAt(LocalDateTime.now());
-        item.setUpdatedAt(LocalDateTime.now());
+        // Convert to DTOs
+        List<InventoryItemResponseDTO> inventoryItemDTOs = inventoryItemPage.getContent().stream()
+            .map(this::convertToResponseDTO)
+            .toList();
         
-        InventoryItem savedItem = inventoryItemRepository.save(item);
-        log.info("Inventory item created successfully with ID: {}", savedItem.getId());
+        // Create pagination info
+        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, inventoryItemPage.getTotalElements());
         
-        return savedItem;
+        return PaginatedResponse.of(inventoryItemDTOs, paginationInfo);
     }
     
     @Override
-    public InventoryItem updateItem(String id, InventoryItem item) {
+    @Transactional(readOnly = true)
+    public InventoryItemResponseDTO findByIdOrThrow(String id) {
+        log.debug("Finding inventory item by ID: {}", id);
+        
+        InventoryItem inventoryItem = inventoryItemRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
+        
+        return convertToResponseDTO(inventoryItem);
+    }
+    
+    @Override
+    public InventoryItemResponseDTO create(InventoryItemCreateDTO createDTO) {
+        log.info("Creating new inventory item with name: {}", createDTO.getName());
+        
+        // Validate foreign keys
+        InventoryItemCategory category = categoryRepository.findById(createDTO.getInventoryItemCategoryId())
+            .orElseThrow(() -> new ForeignKeyConstraintException("inventory_item_category_id", createDTO.getInventoryItemCategoryId()));
+        
+        Unit unit = unitRepository.findById(createDTO.getUnitId())
+            .orElseThrow(() -> new ForeignKeyConstraintException("unit_id", createDTO.getUnitId()));
+        
+        // Create entity
+        InventoryItem inventoryItem = InventoryItem.builder()
+            .id(UUID.randomUUID().toString())
+            .name(createDTO.getName())
+            .thresholdQuantity(createDTO.getThresholdQuantity())
+            .reorderQuantity(createDTO.getReorderQuantity())
+            .category(category)
+            .unit(unit)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+        
+        InventoryItem savedInventoryItem = inventoryItemRepository.save(inventoryItem);
+        log.info("Inventory item created successfully with ID: {}", savedInventoryItem.getId());
+        
+        return convertToResponseDTO(savedInventoryItem);
+    }
+    
+    @Override
+    public InventoryItemResponseDTO update(String id, InventoryItemUpdateDTO updateDTO) {
         log.info("Updating inventory item with ID: {}", id);
         
-        InventoryItem existingItem = inventoryItemRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Inventory item not found with ID: " + id));
+        InventoryItem existingInventoryItem = inventoryItemRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
         
-        validateInventoryItemData(item);
+        // Validate foreign keys
+        InventoryItemCategory category = categoryRepository.findById(updateDTO.getInventoryItemCategoryId())
+            .orElseThrow(() -> new ForeignKeyConstraintException("inventory_item_category_id", updateDTO.getInventoryItemCategoryId()));
         
-        // Check if name is being changed and if new name already exists
-        Optional<InventoryItem> itemWithSameName = inventoryItemRepository.findByName(item.getName());
-        if (itemWithSameName.isPresent() && !itemWithSameName.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Inventory item with name '" + item.getName() + "' already exists");
-        }
+        Unit unit = unitRepository.findById(updateDTO.getUnitId())
+            .orElseThrow(() -> new ForeignKeyConstraintException("unit_id", updateDTO.getUnitId()));
         
-        existingItem.setName(item.getName());
-        existingItem.setThresholdQuantity(item.getThresholdQuantity());
-        existingItem.setReorderQuantity(item.getReorderQuantity());
-        existingItem.setUnitPurchasePrice(item.getUnitPurchasePrice());
-        existingItem.setCategory(item.getCategory());
-        existingItem.setUnit(item.getUnit());
-        existingItem.setUpdatedAt(LocalDateTime.now());
+        // Update fields
+        existingInventoryItem.setName(updateDTO.getName());
+        existingInventoryItem.setThresholdQuantity(updateDTO.getThresholdQuantity());
+        existingInventoryItem.setReorderQuantity(updateDTO.getReorderQuantity());
+        existingInventoryItem.setCategory(category);
+        existingInventoryItem.setUnit(unit);
+        existingInventoryItem.setUpdatedAt(LocalDateTime.now());
         
-        InventoryItem updatedItem = inventoryItemRepository.save(existingItem);
-        log.info("Inventory item updated successfully with ID: {}", updatedItem.getId());
+        InventoryItem updatedInventoryItem = inventoryItemRepository.save(existingInventoryItem);
+        log.info("Inventory item updated successfully with ID: {}", updatedInventoryItem.getId());
         
-        return updatedItem;
+        return convertToResponseDTO(updatedInventoryItem);
     }
     
     @Override
-    @Transactional(readOnly = true)
-    public Optional<InventoryItem> findById(String id) {
-        log.debug("Finding inventory item by ID: {}", id);
-        return inventoryItemRepository.findById(id);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<InventoryItem> findByName(String name) {
-        log.debug("Finding inventory item by name: {}", name);
-        return inventoryItemRepository.findByName(name);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findByCategoryId(String categoryId) {
-        log.debug("Finding inventory items by category ID: {}", categoryId);
-        return inventoryItemRepository.findByCategoryId(categoryId);
-    }
-    
-
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findByUnit(Unit unit) {
-        log.debug("Finding inventory items by unit: {}", unit != null ? unit.getName() : "null");
-        return inventoryItemRepository.findByUnit(unit);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> searchByName(String name) {
-        log.debug("Searching inventory items by name: {}", name);
-        return inventoryItemRepository.findByNameContainingIgnoreCase(name);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        log.debug("Finding inventory items by price range: {} - {}", minPrice, maxPrice);
-        
-        if (minPrice.compareTo(maxPrice) > 0) {
-            throw new IllegalArgumentException("Minimum price cannot be greater than maximum price");
-        }
-        
-        return inventoryItemRepository.findByUnitPurchasePriceBetween(minPrice, maxPrice);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findItemsNearThreshold(int threshold) {
-        log.debug("Finding inventory items near threshold: {}", threshold);
-        
-        if (threshold < 0) {
-            throw new IllegalArgumentException("Threshold cannot be negative");
-        }
-        
-        return inventoryItemRepository.findItemsNearThreshold(threshold);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<InventoryItem> findAllOrderByName() {
-        log.debug("Finding all inventory items ordered by name");
-        return inventoryItemRepository.findAllOrderByName();
-    }
-    
-    @Override
-    public void deleteById(String id) {
+    public void delete(String id) {
         log.info("Deleting inventory item with ID: {}", id);
         
-        if (!inventoryItemRepository.existsById(id)) {
-            throw new RuntimeException("Inventory item not found with ID: " + id);
-        }
+        InventoryItem inventoryItem = inventoryItemRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
+        
+        // Check if inventory item has stock records or movement history
+        // For now, we'll just delete it - in a real system you'd check for references
         
         inventoryItemRepository.deleteById(id);
         log.info("Inventory item deleted successfully with ID: {}", id);
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public long countByCategory(InventoryItemCategory category) {
-        log.debug("Counting inventory items by category: {}",
-        category != null ? category.getName() : "null");
-        return inventoryItemRepository.countByCategory(category);
+    /**
+     * Convert InventoryItem entity to InventoryItemResponseDTO.
+     */
+    private InventoryItemResponseDTO convertToResponseDTO(InventoryItem inventoryItem) {
+        // Convert category
+        CategoryResponseDTO categoryDTO = new CategoryResponseDTO(
+            inventoryItem.getCategory().getId(),
+            inventoryItem.getCategory().getName(),
+            inventoryItem.getCategory().getBranchId(),
+            inventoryItem.getCategory().getCreatedAt(),
+            inventoryItem.getCategory().getUpdatedAt()
+        );
+        
+        // Convert unit
+        UnitResponseDTO unitDTO = new UnitResponseDTO(
+            inventoryItem.getUnit().getId(),
+            inventoryItem.getUnit().getName(),
+            inventoryItem.getUnit().getSymbol(),
+            inventoryItem.getUnit().getCreatedAt(),
+            inventoryItem.getUnit().getUpdatedAt()
+        );
+        
+        return new InventoryItemResponseDTO(
+            inventoryItem.getId(),                    // id
+            inventoryItem.getName(),                  // name
+            inventoryItem.getCategory().getId(),      // inventoryItemCategoryId
+            inventoryItem.getUnit().getId(),          // unitId
+            inventoryItem.getThresholdQuantity(),     // thresholdQuantity
+            inventoryItem.getReorderQuantity(),       // reorderQuantity
+            inventoryItem.getCreatedAt(),             // createdAt
+            inventoryItem.getUpdatedAt(),             // updatedAt
+            null, unitDTO                                   // unit
+        );
     }
     
     /**
-     * Validates inventory item data before creation or update.
-     * 
-     * @param item the inventory item to validate
-     * @throws IllegalArgumentException if validation fails
+     * Map API sort field names to entity field names.
      */
-    private void validateInventoryItemData(InventoryItem item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Inventory item cannot be null");
-        }
-        
-        if (!StringUtils.hasText(item.getName())) {
-            throw new IllegalArgumentException("Inventory item name cannot be empty");
-        }
-        
-        if (item.getName().trim().length() < 2) {
-            throw new IllegalArgumentException("Inventory item name must be at least 2 characters long");
-        }
-        
-        if (item.getThresholdQuantity() < 0) {
-            throw new IllegalArgumentException("Threshold quantity cannot be negative");
-        }
-        
-        if (item.getReorderQuantity() < 0) {
-            throw new IllegalArgumentException("Reorder quantity cannot be negative");
-        }
-        
-        if (item.getUnitPurchasePrice() == null || item.getUnitPurchasePrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Unit purchase price cannot be null or negative");
-        }
-        
-        if (item.getCategory() == null) {
-            throw new IllegalArgumentException("Category cannot be null");
-        }
-        
-        if (item.getUnit() == null) {
-            throw new IllegalArgumentException("Unit cannot be null");
-        }
-        
-        // Brand can be null (optional)
-        
-        // Validate that reorder quantity is greater than threshold quantity
-        if (item.getReorderQuantity() <= item.getThresholdQuantity()) {
-            throw new IllegalArgumentException("Reorder quantity must be greater than threshold quantity");
-        }
-        
-        // Validate price precision (15 digits total, 2 decimal places)
-        if (item.getUnitPurchasePrice().scale() > 2) {
-            throw new IllegalArgumentException("Unit purchase price cannot have more than 2 decimal places");
-        }
-        
-        if (item.getUnitPurchasePrice().precision() > 15) {
-            throw new IllegalArgumentException("Unit purchase price cannot have more than 15 digits in total");
-        }
+    private String mapSortField(String sortField) {
+        return switch (sortField) {
+            case "created_at" -> "createdAt";
+            case "updated_at" -> "updatedAt";
+            default -> sortField;
+        };
     }
 }

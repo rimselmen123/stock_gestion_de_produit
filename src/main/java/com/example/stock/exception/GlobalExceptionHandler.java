@@ -1,5 +1,6 @@
 package com.example.stock.exception;
 
+import com.example.stock.dto.common.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,23 +35,75 @@ public class GlobalExceptionHandler {
         
         log.warn("Validation error: {}", ex.getMessage());
         
-        Map<String, String> errors = new HashMap<>();
+        Map<String, Object> details = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            
+            // Add to details as array to match API contract
+            details.computeIfAbsent(fieldName, k -> new ArrayList<String>());
+            ((List<String>) details.get(fieldName)).add(errorMessage);
         });
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Failed")
-                .message("Input validation failed")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .validationErrors(errors)
-                .build();
+        ErrorResponse errorResponse = ErrorResponse.of(
+            "Validation failed", 
+            "VALIDATION_ERROR", 
+            details
+        );
 
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+    }
+
+    /**
+     * Handles resource not found exceptions.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
+        
+        log.warn("Resource not found: {}", ex.getMessage());
+        
+        String errorCode = ex.getResourceType().toUpperCase() + "_NOT_FOUND";
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getMessage(), errorCode);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * Handles delete constraint exceptions.
+     */
+    @ExceptionHandler(DeleteConstraintException.class)
+    public ResponseEntity<ErrorResponse> handleDeleteConstraintException(
+            DeleteConstraintException ex, WebRequest request) {
+        
+        log.warn("Delete constraint violation: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getMessage(), "DELETE_CONSTRAINT");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Handles foreign key constraint exceptions.
+     */
+    @ExceptionHandler(ForeignKeyConstraintException.class)
+    public ResponseEntity<ErrorResponse> handleForeignKeyConstraintException(
+            ForeignKeyConstraintException ex, WebRequest request) {
+        
+        log.warn("Foreign key constraint violation: {}", ex.getMessage());
+        
+        Map<String, Object> details = new HashMap<>();
+        List<String> errors = new ArrayList<>();
+        errors.add("Selected " + ex.getFieldName().replace("_id", "").replace("_", " ") + " does not exist");
+        details.put(ex.getFieldName(), errors);
+        
+        ErrorResponse errorResponse = ErrorResponse.of(
+            "Validation failed", 
+            "VALIDATION_ERROR", 
+            details
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
     }
 
     /**
@@ -61,53 +115,9 @@ public class GlobalExceptionHandler {
         
         log.warn("Business logic error: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Bad Request")
-                .message(ex.getMessage())
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getMessage(), "BAD_REQUEST");
 
         return ResponseEntity.badRequest().body(errorResponse);
-    }
-
-    /**
-     * Handles RuntimeException (conflict errors like duplicates).
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(
-            RuntimeException ex, WebRequest request) {
-        
-        log.error("Runtime error: {}", ex.getMessage(), ex);
-        
-        // Check if it's a constraint violation (duplicate)
-        if (ex.getMessage() != null && 
-            (ex.getMessage().contains("duplicate") || 
-             ex.getMessage().contains("already exists") ||
-             ex.getMessage().contains("constraint"))) {
-            
-            ErrorResponse errorResponse = ErrorResponse.builder()
-                    .timestamp(LocalDateTime.now())
-                    .status(HttpStatus.CONFLICT.value())
-                    .error("Conflict")
-                    .message("Resource already exists or constraint violation")
-                    .path(request.getDescription(false).replace("uri=", ""))
-                    .build();
-
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-        }
-
-        // Generic server error
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     /**
@@ -119,13 +129,10 @@ public class GlobalExceptionHandler {
         
         log.error("Unexpected error: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error("Internal Server Error")
-                .message("An unexpected error occurred")
-                .path(request.getDescription(false).replace("uri=", ""))
-                .build();
+        ErrorResponse errorResponse = ErrorResponse.of(
+            "An unexpected error occurred", 
+            "INTERNAL_SERVER_ERROR"
+        );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }

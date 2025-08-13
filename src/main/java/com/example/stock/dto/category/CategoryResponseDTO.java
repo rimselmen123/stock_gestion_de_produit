@@ -1,5 +1,6 @@
 package com.example.stock.dto.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,22 +31,20 @@ public class CategoryResponseDTO {
     private String name;
 
     /**
-     * The description of the category.
-     */
-    private String description;
-
-    /**
      * The branch ID this category belongs to.
      */
+    @JsonProperty("branch_id")
     private String branchId;
 
     /**
      * Timestamp when the category was created.
      */
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     /**
      * Timestamp when the category was last updated.
      */
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 }

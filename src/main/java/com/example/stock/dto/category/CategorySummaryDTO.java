@@ -1,5 +1,6 @@
 package com.example.stock.dto.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,5 +32,6 @@ public class CategorySummaryDTO {
     /**
      * The branch ID this category belongs to.
      */
+    @JsonProperty("branch_id")
     private String branchId;
 }

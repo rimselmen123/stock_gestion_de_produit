@@ -1,11 +1,13 @@
 package com.example.stock.dto.inventoryitem;
 
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 /**
  * Data Transfer Object for creating a new InventoryItem.
@@ -21,50 +23,43 @@ public class InventoryItemCreateDTO {
 
     /**
      * The name of the inventory item.
-     * Must be unique and between 2-100 characters.
+     * Must not be blank and cannot exceed 255 characters.
      */
     @NotBlank(message = "Inventory item name is required")
-    @Size(min = 2, max = 100, message = "Inventory item name must be between 2 and 100 characters")
+    @Size(max = 255, message = "Inventory item name must not exceed 255 characters")
     private String name;
 
     /**
+     * The category ID this item belongs to.
+     * Must exist in categories table.
+     */
+    @NotBlank(message = "Category ID is required")
+    @JsonProperty("inventory_item_category_id")
+    private String inventoryItemCategoryId;
+
+    /**
+     * The unit ID for this item.
+     * Must exist in units table.
+     */
+    @NotBlank(message = "Unit ID is required")
+    @JsonProperty("unit_id")
+    private String unitId;
+
+    /**
      * The threshold quantity for low stock alerts.
-     * Must be non-negative.
+     * Must be a positive number.
      */
     @NotNull(message = "Threshold quantity is required")
-    @Min(value = 0, message = "Threshold quantity cannot be negative")
+    @Positive(message = "Threshold quantity must be positive")
+    @JsonProperty("threshold_quantity")
     private Integer thresholdQuantity;
 
     /**
      * The quantity to reorder when stock is low.
-     * Must be greater than threshold quantity.
+     * Must be a positive number.
      */
     @NotNull(message = "Reorder quantity is required")
-    @Min(value = 1, message = "Reorder quantity must be at least 1")
+    @Positive(message = "Reorder quantity must be positive")
+    @JsonProperty("reorder_quantity")
     private Integer reorderQuantity;
-
-    /**
-     * The unit purchase price of the item.
-     * Must be positive with maximum 2 decimal places.
-     */
-    @NotNull(message = "Unit purchase price is required")
-    @DecimalMin(value = "0.01", message = "Unit purchase price must be positive")
-    @Digits(integer = 13, fraction = 2, message = "Unit purchase price cannot have more than 13 integer digits and 2 decimal places")
-    private BigDecimal unitPurchasePrice;
-
-    /**
-     * The category ID this item belongs to.
-     * Required field.
-     */
-    @NotBlank(message = "Category ID is required")
-    private String categoryId;
-
-    /**
-     * The unit ID for this item.
-     * Required field.
-     */
-    @NotBlank(message = "Unit ID is required")
-    private String unitId;
-
-
 }

@@ -1,8 +1,9 @@
 package com.example.stock.service;
 
-import com.example.stock.entity.Unit;
-import java.util.List;
-import java.util.Optional;
+import com.example.stock.dto.common.PaginatedResponse;
+import com.example.stock.dto.unit.UnitCreateDTO;
+import com.example.stock.dto.unit.UnitResponseDTO;
+import com.example.stock.dto.unit.UnitUpdateDTO;
 
 /**
  * Service interface for Unit entity operations.
@@ -14,76 +15,52 @@ import java.util.Optional;
 public interface UnitService {
     
     /**
+     * Find all units with pagination, search, and sorting.
+     * 
+     * @param search Search term for name and symbol fields
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with units
+     */
+    PaginatedResponse<UnitResponseDTO> findAllWithPagination(
+        String search, int page, int perPage, String sortField, String sortDirection);
+    
+    /**
+     * Find unit by ID or throw exception if not found.
+     * 
+     * @param id Unit ID
+     * @return Unit response DTO
+     * @throws ResourceNotFoundException if unit not found
+     */
+    UnitResponseDTO findByIdOrThrow(String id);
+    
+    /**
      * Create a new unit.
      * 
-     * @param unit the unit entity to create
-     * @return the created unit
+     * @param createDTO Unit creation data
+     * @return Created unit response DTO
      * @throws IllegalArgumentException if unit data is invalid
      */
-    Unit createUnit(Unit unit);
+    UnitResponseDTO create(UnitCreateDTO createDTO);
     
     /**
      * Update an existing unit.
      * 
-     * @param id the unit ID
-     * @param unit the updated unit data
-     * @return the updated unit
-     * @throws RuntimeException if unit not found
+     * @param id Unit ID
+     * @param updateDTO Unit update data
+     * @return Updated unit response DTO
+     * @throws ResourceNotFoundException if unit not found
      */
-    Unit updateUnit(String id, Unit unit);
-    
-    /**
-     * Find unit by ID.
-     * 
-     * @param id the unit ID
-     * @return Optional containing the unit if found
-     */
-    Optional<Unit> findById(String id);
-    
-    /**
-     * Find unit by name.
-     * 
-     * @param name the unit name
-     * @return Optional containing the unit if found
-     */
-    Optional<Unit> findByName(String name);
-    
-    /**
-     * Find unit by symbol.
-     * 
-     * @param symbol the unit symbol
-     * @return Optional containing the unit if found
-     */
-    Optional<Unit> findBySymbol(String symbol);
-    
-    /**
-     * Get all units ordered by name.
-     * 
-     * @return list of all units ordered by name
-     */
-    List<Unit> findAllOrderByName();
-    
-    /**
-     * Search units by name (partial match, case-insensitive).
-     * 
-     * @param name the partial name to search
-     * @return list of matching units
-     */
-    List<Unit> searchByName(String name);
+    UnitResponseDTO update(String id, UnitUpdateDTO updateDTO);
     
     /**
      * Delete unit by ID.
      * 
-     * @param id the unit ID to delete
-     * @throws RuntimeException if unit not found or has dependencies
+     * @param id Unit ID to delete
+     * @throws ResourceNotFoundException if unit not found
+     * @throws DeleteConstraintException if unit is referenced by inventory items
      */
-    void deleteById(String id);
-    
-    /**
-     * Check if unit exists by symbol.
-     * 
-     * @param symbol the unit symbol
-     * @return true if exists, false otherwise
-     */
-    boolean existsBySymbol(String symbol);
+    void delete(String id);
 }

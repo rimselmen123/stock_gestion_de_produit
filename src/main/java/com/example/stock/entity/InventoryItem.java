@@ -2,7 +2,6 @@ package com.example.stock.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,9 +23,6 @@ public class InventoryItem {
     @Column(name = "reorder_quantity", nullable = false)
     private int reorderQuantity;
 
-    @Column(name = "unit_purchase_price", nullable = false, precision = 15, scale = 2)
-    private BigDecimal unitPurchasePrice;
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -41,6 +37,4 @@ public class InventoryItem {
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
-
-
 }

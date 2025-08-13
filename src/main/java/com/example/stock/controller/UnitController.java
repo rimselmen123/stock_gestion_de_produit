@@ -1,17 +1,11 @@
 package com.example.stock.controller;
 
+import com.example.stock.dto.common.ApiResponse;
+import com.example.stock.dto.common.PaginatedResponse;
 import com.example.stock.dto.unit.UnitCreateDTO;
 import com.example.stock.dto.unit.UnitResponseDTO;
-import com.example.stock.dto.unit.UnitSummaryDTO;
 import com.example.stock.dto.unit.UnitUpdateDTO;
-import com.example.stock.entity.Unit;
-import com.example.stock.mapper.UnitMapper;
 import com.example.stock.service.UnitService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,225 +13,121 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
 /**
  * REST Controller for Unit management operations.
- * Provides CRUD endpoints for unit entities with proper validation and error handling.
+ * Provides CRUD endpoints for unit entities with proper validation and error
+ * handling.
  * 
  * @author Generated
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/v1/units")
+@RequestMapping("/api/units")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Slf4j
-@Tag(name = "Unit Management", description = "APIs for managing unit information")
 public class UnitController {
 
     private final UnitService unitService;
-    private final UnitMapper unitMapper;
+
+    /**
+     * Get all units with filtering and pagination.
+     * 
+     * @param search        Search term for name and symbol fields
+     * @param page          Page number (1-based)
+     * @param perPage       Items per page
+     * @param sortField     Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with units
+     */
+    @GetMapping
+    public ResponseEntity<PaginatedResponse<UnitResponseDTO>> getAllUnits(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "5") int perPage,
+            @RequestParam(name = "sort_field", defaultValue = "created_at") String sortField,
+            @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
+
+        log.debug("Getting units with search: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}",
+                search, page, perPage, sortField, sortDirection);
+
+        PaginatedResponse<UnitResponseDTO> response = unitService.findAllWithPagination(
+                search, page, perPage, sortField, sortDirection);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get a specific unit by ID.
+     * 
+     * @param id Unit ID
+     * @return Unit data or 404 if not found
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UnitResponseDTO>> getUnitById(@PathVariable String id) {
+
+        log.debug("Getting unit with ID: {}", id);
+
+        UnitResponseDTO unit = unitService.findByIdOrThrow(id);
+        ApiResponse<UnitResponseDTO> response = ApiResponse.success(unit);
+
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * Create a new unit.
      * 
-     * @param createDTO the unit creation data
-     * @return ResponseEntity with created unit data
+     * @param createDTO Unit creation data
+     * @return Created unit data
      */
     @PostMapping
-    @Operation(summary = "Create a new unit", description = "Creates a new unit with the provided information")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Unit created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "409", description = "Unit with same symbol already exists")
-    })
-    public ResponseEntity<UnitResponseDTO> createUnit(
+    public ResponseEntity<ApiResponse<UnitResponseDTO>> createUnit(
             @Valid @RequestBody UnitCreateDTO createDTO) {
-        
-        log.info("Creating new unit with symbol: {}", createDTO.getSymbol());
-        
-        Unit unitEntity = unitMapper.toEntity(createDTO);
-        Unit createdUnit = unitService.createUnit(unitEntity);
-        UnitResponseDTO responseDTO = unitMapper.toResponseDTO(createdUnit);
-        
-        log.info("Unit created successfully with ID: {}", createdUnit.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
-    }
 
-    /**
-     * Get all units.
-     * 
-     * @return ResponseEntity with list of all units
-     */
-    @GetMapping
-    @Operation(summary = "Get all units", description = "Retrieves a list of all units")
-    @ApiResponse(responseCode = "200", description = "Units retrieved successfully")
-    public ResponseEntity<List<UnitResponseDTO>> getAllUnits() {
-        
-        log.debug("Retrieving all units");
-        
-        List<Unit> units = unitService.findAllOrderByName();
-        List<UnitResponseDTO> responseDTOs = unitMapper.toResponseDTOList(units);
-        
-        log.debug("Retrieved {} units", units.size());
-        return ResponseEntity.ok(responseDTOs);
-    }
+        log.info("Creating new unit with name: {}", createDTO.getName());
 
-    /**
-     * Get units summary for listings.
-     *
-     * @return ResponseEntity with list of unit summaries
-     */
-    @GetMapping("/summary")
-    @Operation(summary = "Get units summary", description = "Retrieves a lightweight list of units for dropdowns and listings")
-    @ApiResponse(responseCode = "200", description = "Unit summaries retrieved successfully")
-    public ResponseEntity<List<UnitSummaryDTO>> getUnitsSummary() {
+        UnitResponseDTO createdUnit = unitService.create(createDTO);
+        ApiResponse<UnitResponseDTO> response = ApiResponse.success(
+                createdUnit, "Unit created successfully");
 
-        log.debug("Retrieving units summary");
-
-        List<Unit> units = unitService.findAllOrderByName();
-        List<UnitSummaryDTO> summaryDTOs = unitMapper.toSummaryDTOList(units);
-
-        log.debug("Retrieved {} unit summaries", units.size());
-        return ResponseEntity.ok(summaryDTOs);
-    }
-
-    /**
-     * Get unit by ID.
-     *
-     * @param id the unit ID
-     * @return ResponseEntity with unit data or 404 if not found
-     */
-    @GetMapping("/{id}")
-    @Operation(summary = "Get unit by ID", description = "Retrieves a specific unit by its ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Unit found and retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Unit not found")
-    })
-    public ResponseEntity<UnitResponseDTO> getUnitById(
-            @Parameter(description = "Unit ID", required = true)
-            @PathVariable String id) {
-
-        log.debug("Retrieving unit with ID: {}", id);
-
-        Optional<Unit> unitOptional = unitService.findById(id);
-
-        if (unitOptional.isPresent()) {
-            UnitResponseDTO responseDTO = unitMapper.toResponseDTO(unitOptional.get());
-            log.debug("Unit found with ID: {}", id);
-            return ResponseEntity.ok(responseDTO);
-        } else {
-            log.warn("Unit not found with ID: {}", id);
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
      * Update an existing unit.
-     *
-     * @param id the unit ID to update
-     * @param updateDTO the unit update data
-     * @return ResponseEntity with updated unit data
+     * 
+     * @param id        Unit ID to update
+     * @param updateDTO Unit update data
+     * @return Updated unit data
      */
     @PutMapping("/{id}")
-    @Operation(summary = "Update unit", description = "Updates an existing unit with the provided information")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Unit updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Unit not found"),
-        @ApiResponse(responseCode = "409", description = "Unit with same symbol already exists")
-    })
-    public ResponseEntity<UnitResponseDTO> updateUnit(
-            @Parameter(description = "Unit ID", required = true)
+    public ResponseEntity<ApiResponse<UnitResponseDTO>> updateUnit(
             @PathVariable String id,
             @Valid @RequestBody UnitUpdateDTO updateDTO) {
 
         log.info("Updating unit with ID: {}", id);
 
-        // Check if unit exists
-        Optional<Unit> existingUnitOptional = unitService.findById(id);
-        if (existingUnitOptional.isEmpty()) {
-            log.warn("Unit not found with ID: {}", id);
-            return ResponseEntity.notFound().build();
-        }
+        UnitResponseDTO updatedUnit = unitService.update(id, updateDTO);
+        ApiResponse<UnitResponseDTO> response = ApiResponse.success(
+                updatedUnit, "Unit updated successfully");
 
-        Unit unitToUpdate = unitMapper.toEntity(new UnitCreateDTO(
-            updateDTO.getName(),
-            updateDTO.getSymbol()
-        ));
-
-        Unit updatedUnit = unitService.updateUnit(id, unitToUpdate);
-        UnitResponseDTO responseDTO = unitMapper.toResponseDTO(updatedUnit);
-
-        log.info("Unit updated successfully with ID: {}", id);
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(response);
     }
 
     /**
      * Delete a unit by ID.
-     *
-     * @param id the unit ID to delete
-     * @return ResponseEntity with no content or error status
+     * 
+     * @param id Unit ID to delete
+     * @return Success message or error if unit is in use
      */
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete unit", description = "Deletes a unit by its ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Unit deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Unit not found"),
-        @ApiResponse(responseCode = "409", description = "Cannot delete unit with associated inventory items")
-    })
-    public ResponseEntity<Void> deleteUnit(
-            @Parameter(description = "Unit ID", required = true)
-            @PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUnit(@PathVariable String id) {
 
         log.info("Deleting unit with ID: {}", id);
 
-        // Check if unit exists
-        Optional<Unit> unitOptional = unitService.findById(id);
-        if (unitOptional.isEmpty()) {
-            log.warn("Unit not found with ID: {}", id);
-            return ResponseEntity.notFound().build();
-        }
+        unitService.delete(id);
+        ApiResponse<Void> response = ApiResponse.success("Unit deleted successfully");
 
-        try {
-            unitService.deleteById(id);
-            log.info("Unit deleted successfully with ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            log.error("Error deleting unit with ID: {}, Error: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-    }
-
-    /**
-     * Search unit by symbol.
-     *
-     * @param symbol the unit symbol to search for
-     * @return ResponseEntity with unit data or 404 if not found
-     */
-    @GetMapping("/search")
-    @Operation(summary = "Search unit by symbol", description = "Finds a unit by its exact symbol")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Unit found"),
-        @ApiResponse(responseCode = "404", description = "Unit not found")
-    })
-    public ResponseEntity<UnitResponseDTO> searchUnitBySymbol(
-            @Parameter(description = "Unit symbol to search for", required = true)
-            @RequestParam String symbol) {
-
-        log.debug("Searching for unit with symbol: {}", symbol);
-
-        Optional<Unit> unitOptional = unitService.findBySymbol(symbol);
-
-        if (unitOptional.isPresent()) {
-            UnitResponseDTO responseDTO = unitMapper.toResponseDTO(unitOptional.get());
-            log.debug("Unit found with symbol: {}", symbol);
-            return ResponseEntity.ok(responseDTO);
-        } else {
-            log.warn("Unit not found with symbol: {}", symbol);
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(response);
     }
 }

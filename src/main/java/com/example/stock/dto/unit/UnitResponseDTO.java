@@ -1,5 +1,6 @@
 package com.example.stock.dto.unit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,10 +38,12 @@ public class UnitResponseDTO {
     /**
      * Timestamp when the unit was created.
      */
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     /**
      * Timestamp when the unit was last updated.
      */
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 }
