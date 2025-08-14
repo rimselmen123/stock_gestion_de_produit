@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -34,7 +35,7 @@ public class ApplicationConfig {
         public WebMvcConfigurer corsConfigurer() {
                 return new WebMvcConfigurer() {
                         @Override
-                        public void addCorsMappings(CorsRegistry registry) {
+                        public void addCorsMappings(@NonNull CorsRegistry registry) {
                                 registry.addMapping("/api/**")
                                                 .allowedOriginPatterns("*")
                                                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
@@ -57,11 +58,11 @@ public class ApplicationConfig {
                                                 .description("Complete REST API for Stock Management System including Unit, Category, and Inventory Item management")
                                                 .version("1.0.0")
                                                 .contact(new Contact()
-                                                                .name("Development Team")
-                                                                .email("dev@example.com")
+                                                                .name("Blink Team")
+                                                                .email("rimselmen123@gmail.com")
                                                                 .url("https://example.com"))
                                                 .license(new License()
-                                                                .name("MIT License")
+                                                                .name("MIT License By blink team")
                                                                 .url("https://opensource.org/licenses/MIT")))
                                 .servers(List.of(
                                                 new Server()

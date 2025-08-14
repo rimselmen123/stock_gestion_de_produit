@@ -16,10 +16,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +40,46 @@ public class UnitServiceImpl implements UnitService {
     
     private final UnitRepository unitRepository;
     
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<UnitResponseDTO> findAllWithFilters(
+            String search,
+            String name,
+            String symbol,
+            String createdFrom,
+            String createdTo,
+            String updatedFrom,
+            String updatedTo,
+            int page,
+            int perPage,
+            String sortField,
+            String sortDirection) {
+
+        log.debug("Finding units with filters - search: {}, name: {}, symbol: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+                search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+
+        // Create sort object
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, mapSortField(sortField));
+
+        Pageable pageable = PageRequest.of(page - 1, perPage, sort);
+
+        Specification<Unit> spec = buildSpecification(search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo);
+
+        Page<Unit> unitPage = unitRepository.findAll(spec, pageable);
+
+        List<UnitResponseDTO> unitDTOs = unitPage.getContent().stream()
+            .map(this::convertToResponseDTO)
+            .toList();
+
+        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, unitPage.getTotalElements());
+        return PaginatedResponse.of(unitDTOs, paginationInfo);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<UnitResponseDTO> findAllWithPagination(
@@ -173,5 +215,73 @@ public class UnitServiceImpl implements UnitService {
             case "updated_at" -> "updatedAt";
             default -> sortField;
         };
+    }
+
+    /**
+     * Build dynamic specification from filter parameters.
+     */
+    private Specification<Unit> buildSpecification(
+            String search,
+            String name,
+            String symbol,
+            String createdFrom,
+            String createdTo,
+            String updatedFrom,
+            String updatedTo) {
+        return (root, query, cb) -> {
+            var predicates = cb.conjunction();
+
+            // search over name or symbol
+            if (search != null && !search.trim().isEmpty()) {
+                String like = "%" + search.trim().toLowerCase() + "%";
+                var p = cb.or(
+                        cb.like(cb.lower(root.get("name")), like),
+                        cb.like(cb.lower(root.get("symbol")), like)
+                );
+                predicates = cb.and(predicates, p);
+            }
+
+            // name contains
+            if (name != null && !name.trim().isEmpty()) {
+                String like = "%" + name.trim().toLowerCase() + "%";
+                predicates = cb.and(predicates, cb.like(cb.lower(root.get("name")), like));
+            }
+
+            // symbol contains
+            if (symbol != null && !symbol.trim().isEmpty()) {
+                String like = "%" + symbol.trim().toLowerCase() + "%";
+                predicates = cb.and(predicates, cb.like(cb.lower(root.get("symbol")), like));
+            }
+
+            // created range
+            if (createdFrom != null && !createdFrom.isBlank()) {
+                LocalDateTime from = parseIsoDateTime(createdFrom, "createdFrom");
+                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get("createdAt"), from));
+            }
+            if (createdTo != null && !createdTo.isBlank()) {
+                LocalDateTime to = parseIsoDateTime(createdTo, "createdTo");
+                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get("createdAt"), to));
+            }
+
+            // updated range
+            if (updatedFrom != null && !updatedFrom.isBlank()) {
+                LocalDateTime from = parseIsoDateTime(updatedFrom, "updatedFrom");
+                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get("updatedAt"), from));
+            }
+            if (updatedTo != null && !updatedTo.isBlank()) {
+                LocalDateTime to = parseIsoDateTime(updatedTo, "updatedTo");
+                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get("updatedAt"), to));
+            }
+
+            return predicates;
+        };
+    }
+
+    private LocalDateTime parseIsoDateTime(String value, String fieldName) {
+        try {
+            return LocalDateTime.parse(value);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Invalid ISO-8601 date-time for " + fieldName + ": " + value);
+        }
     }
 }

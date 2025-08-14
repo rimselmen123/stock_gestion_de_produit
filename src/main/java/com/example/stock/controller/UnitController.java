@@ -34,6 +34,12 @@ public class UnitController {
      * Get all units with filtering and pagination.
      * 
      * @param search        Search term for name and symbol fields
+     * @param name          Filter by name (contains)
+     * @param symbol        Filter by symbol (contains)
+     * @param createdFrom   Filter created_at from (ISO-8601)
+     * @param createdTo     Filter created_at to (ISO-8601)
+     * @param updatedFrom   Filter updated_at from (ISO-8601)
+     * @param updatedTo     Filter updated_at to (ISO-8601)
      * @param page          Page number (1-based)
      * @param perPage       Items per page
      * @param sortField     Field to sort by
@@ -43,16 +49,23 @@ public class UnitController {
     @GetMapping
     public ResponseEntity<PaginatedResponse<UnitResponseDTO>> getAllUnits(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String symbol,
+            @RequestParam(name = "created_from", required = false) String createdFrom,
+            @RequestParam(name = "created_to", required = false) String createdTo,
+            @RequestParam(name = "updated_from", required = false) String updatedFrom,
+            @RequestParam(name = "updated_to", required = false) String updatedTo,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(name = "per_page", defaultValue = "5") int perPage,
             @RequestParam(name = "sort_field", defaultValue = "created_at") String sortField,
             @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
 
-        log.debug("Getting units with search: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}",
-                search, page, perPage, sortField, sortDirection);
+        log.debug("Getting units with filters - search: {}, name: {}, symbol: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}",
+                search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
 
-        PaginatedResponse<UnitResponseDTO> response = unitService.findAllWithPagination(
-                search, page, perPage, sortField, sortDirection);
+        // Always use the advanced filters method for backward compatibility too.
+        PaginatedResponse<UnitResponseDTO> response = unitService.findAllWithFilters(
+                search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
 
         return ResponseEntity.ok(response);
     }

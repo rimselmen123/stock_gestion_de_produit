@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,104 @@ import java.util.UUID;
 public class InventoryItemCategoryServiceImpl implements InventoryItemCategoryService {
 
     private final InventoryItemCategoryRepository categoryRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<CategoryResponseDTO> findAllWithFilters(
+            String search, String name, String branchId,
+            String createdFrom, String createdTo,
+            String updatedFrom, String updatedTo,
+            int page, int perPage, String sortField, String sortDirection) {
+
+        log.debug("Finding categories with filters - search: {}, name: {}, branchId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+                search, name, branchId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+
+        // Create sort object
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, mapSortField(sortField));
+
+        Pageable pageable = PageRequest.of(page - 1, perPage, sort);
+
+        // Build specification based on filters
+        Specification<InventoryItemCategory> spec = (root, query, criteriaBuilder) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+
+            // Search term (name or description)
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.toLowerCase() + "%";
+                predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), searchPattern)
+                ));
+            }
+
+            // Name filter
+            if (name != null && !name.trim().isEmpty()) {
+                String namePattern = "%" + name.toLowerCase() + "%";
+                predicates.add(criteriaBuilder.like(
+                    criteriaBuilder.lower(root.get("name")), namePattern));
+            }
+
+            // Branch ID filter
+            if (branchId != null && !branchId.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("branchId"), branchId));
+            }
+
+            // Created date range
+            if (createdFrom != null) {
+                try {
+                    LocalDateTime from = LocalDateTime.parse(createdFrom);
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), from));
+                } catch (Exception e) {
+                    log.warn("Invalid createdFrom date format: {}", createdFrom);
+                }
+            }
+            if (createdTo != null) {
+                try {
+                    LocalDateTime to = LocalDateTime.parse(createdTo);
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), to));
+                } catch (Exception e) {
+                    log.warn("Invalid createdTo date format: {}", createdTo);
+                }
+            }
+
+            // Updated date range
+            if (updatedFrom != null) {
+                try {
+                    LocalDateTime from = LocalDateTime.parse(updatedFrom);
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("updatedAt"), from));
+                } catch (Exception e) {
+                    log.warn("Invalid updatedFrom date format: {}", updatedFrom);
+                }
+            }
+            if (updatedTo != null) {
+                try {
+                    LocalDateTime to = LocalDateTime.parse(updatedTo);
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("updatedAt"), to));
+                } catch (Exception e) {
+                    log.warn("Invalid updatedTo date format: {}", updatedTo);
+                }
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        Page<InventoryItemCategory> categoryPage = categoryRepository.findAll(spec, pageable);
+
+        List<CategoryResponseDTO> categoryDTOs = categoryPage.getContent().stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+
+        PaginationInfo paginationInfo = PaginationInfo.of(
+                page, perPage, categoryPage.getTotalElements());
+
+        return PaginatedResponse.of(categoryDTOs, paginationInfo);
+    }
+
+
 
     @Override
     @Transactional(readOnly = true)
@@ -126,7 +225,8 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
     public void delete(String id) {
         log.info("Deleting category with ID: {}", id);
         
-        InventoryItemCategory category = categoryRepository.findById(id)
+        // Ensure category exists
+        categoryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         
         // Check if category has associated inventory items using count query

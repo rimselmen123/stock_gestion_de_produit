@@ -1,11 +1,13 @@
 package com.example.stock.controller;
 
-import com.example.stock.dto.common.ApiResponse;
 import com.example.stock.dto.common.PaginatedResponse;
 import com.example.stock.dto.inventoryitem.InventoryItemCreateDTO;
 import com.example.stock.dto.inventoryitem.InventoryItemResponseDTO;
 import com.example.stock.dto.inventoryitem.InventoryItemUpdateDTO;
 import com.example.stock.service.InventoryItemService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,19 +41,88 @@ public class InventoryItemController {
      * @param sortDirection Sort direction (asc/desc)
      * @return Paginated response with inventory items
      */
+    /**
+     * Get all inventory items with advanced filtering and pagination.
+     * 
+     * @param search Search term for name field
+     * @param name Filter by name (contains)
+     * @param categoryId Filter by category ID
+     * @param unitId Filter by unit ID
+     * @param minThreshold Filter by minimum threshold quantity
+     * @param maxThreshold Filter by maximum threshold quantity
+     * @param minReorder Filter by minimum reorder quantity
+     * @param maxReorder Filter by maximum reorder quantity
+     * @param createdFrom Filter created_at from (ISO-8601)
+     * @param createdTo Filter created_at to (ISO-8601)
+     * @param updatedFrom Filter updated_at from (ISO-8601)
+     * @param updatedTo Filter updated_at to (ISO-8601)
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with inventory items
+     */
     @GetMapping
+    @Operation(summary = "Get all inventory items with advanced filtering and pagination")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved inventory items")
+    @ApiResponse(responseCode = "400", description = "Invalid parameters provided")
     public ResponseEntity<PaginatedResponse<InventoryItemResponseDTO>> getAllInventoryItems(
+            @Parameter(description = "Search term for name field")
             @RequestParam(required = false) String search,
+            
+            @Parameter(description = "Filter by name (contains)")
+            @RequestParam(required = false) String name,
+            
+            @Parameter(description = "Filter by category ID")
+            @RequestParam(name = "category_id", required = false) String categoryId,
+            
+            @Parameter(description = "Filter by unit ID")
+            @RequestParam(name = "unit_id", required = false) String unitId,
+            
+            @Parameter(description = "Filter by minimum threshold quantity")
+            @RequestParam(name = "min_threshold", required = false) Integer minThreshold,
+            
+            @Parameter(description = "Filter by maximum threshold quantity")
+            @RequestParam(name = "max_threshold", required = false) Integer maxThreshold,
+            
+            @Parameter(description = "Filter by minimum reorder quantity")
+            @RequestParam(name = "min_reorder", required = false) Integer minReorder,
+            
+            @Parameter(description = "Filter by maximum reorder quantity")
+            @RequestParam(name = "max_reorder", required = false) Integer maxReorder,
+            
+            @Parameter(description = "Filter created_at from (ISO-8601)")
+            @RequestParam(name = "created_from", required = false) String createdFrom,
+            
+            @Parameter(description = "Filter created_at to (ISO-8601)")
+            @RequestParam(name = "created_to", required = false) String createdTo,
+            
+            @Parameter(description = "Filter updated_at from (ISO-8601)")
+            @RequestParam(name = "updated_from", required = false) String updatedFrom,
+            
+            @Parameter(description = "Filter updated_at to (ISO-8601)")
+            @RequestParam(name = "updated_to", required = false) String updatedTo,
+            
+            @Parameter(description = "Page number (1-based)", example = "1")
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(name = "per_page", defaultValue = "5") int perPage,
             @RequestParam(name = "sort_field", defaultValue = "created_at") String sortField,
             @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
         
-        log.debug("Getting inventory items with search: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
-                  search, page, perPage, sortField, sortDirection);
+        log.debug("""
+                Getting inventory items with filters - 
+                search: {}, name: {}, categoryId: {}, unitId: {}, 
+                minThreshold: {}, maxThreshold: {}, minReorder: {}, maxReorder: {},
+                createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {},
+                page: {}, perPage: {}, sortField: {}, sortDirection: {}""",
+                search, name, categoryId, unitId, minThreshold, maxThreshold, minReorder, maxReorder,
+                createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
         
-        PaginatedResponse<InventoryItemResponseDTO> response = inventoryItemService.findAllWithPagination(
-            search, page, perPage, sortField, sortDirection);
+        PaginatedResponse<InventoryItemResponseDTO> response = inventoryItemService.findAllWithFilters(
+                search, name, categoryId, unitId, 
+                minThreshold, maxThreshold, minReorder, maxReorder,
+                createdFrom, createdTo, updatedFrom, updatedTo,
+                page, perPage, sortField, sortDirection);
         
         return ResponseEntity.ok(response);
     }
@@ -63,14 +134,16 @@ public class InventoryItemController {
      * @return Inventory item data or 404 if not found
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<InventoryItemResponseDTO>> getInventoryItemById(@PathVariable String id) {
+    @Operation(summary = "Get a specific inventory item by ID")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved inventory item")
+    @ApiResponse(responseCode = "404", description = "Inventory item not found")
+    public ResponseEntity<InventoryItemResponseDTO> getInventoryItemById(
+            @Parameter(description = "Inventory item ID") @PathVariable String id) {
         
         log.debug("Getting inventory item with ID: {}", id);
         
         InventoryItemResponseDTO inventoryItem = inventoryItemService.findByIdOrThrow(id);
-        ApiResponse<InventoryItemResponseDTO> response = ApiResponse.success(inventoryItem);
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(inventoryItem);
     }
 
     /**
@@ -80,16 +153,16 @@ public class InventoryItemController {
      * @return Created inventory item data
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<InventoryItemResponseDTO>> createInventoryItem(
+    @Operation(summary = "Create a new inventory item")
+    @ApiResponse(responseCode = "201", description = "Inventory item created successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid input data")
+    public ResponseEntity<InventoryItemResponseDTO> createInventoryItem(
             @Valid @RequestBody InventoryItemCreateDTO createDTO) {
         
         log.info("Creating new inventory item with name: {}", createDTO.getName());
         
         InventoryItemResponseDTO createdInventoryItem = inventoryItemService.create(createDTO);
-        ApiResponse<InventoryItemResponseDTO> response = ApiResponse.success(
-            createdInventoryItem, "Inventory item created successfully");
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return new ResponseEntity<>(createdInventoryItem, HttpStatus.CREATED);
     }
 
     /**
@@ -100,17 +173,18 @@ public class InventoryItemController {
      * @return Updated inventory item data
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<InventoryItemResponseDTO>> updateInventoryItem(
-            @PathVariable String id,
+    @Operation(summary = "Update an existing inventory item")
+    @ApiResponse(responseCode = "200", description = "Inventory item updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid input data")
+    @ApiResponse(responseCode = "404", description = "Inventory item not found")
+    public ResponseEntity<InventoryItemResponseDTO> updateInventoryItem(
+            @Parameter(description = "Inventory item ID to update") @PathVariable String id,
             @Valid @RequestBody InventoryItemUpdateDTO updateDTO) {
         
         log.info("Updating inventory item with ID: {}", id);
         
         InventoryItemResponseDTO updatedInventoryItem = inventoryItemService.update(id, updateDTO);
-        ApiResponse<InventoryItemResponseDTO> response = ApiResponse.success(
-            updatedInventoryItem, "Inventory item updated successfully");
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(updatedInventoryItem);
     }
 
     /**
@@ -120,13 +194,15 @@ public class InventoryItemController {
      * @return Success message or error if inventory item is in use
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteInventoryItem(@PathVariable String id) {
+    @Operation(summary = "Delete an inventory item by ID")
+    @ApiResponse(responseCode = "200", description = "Inventory item deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Inventory item not found")
+    public ResponseEntity<Void> deleteInventoryItem(
+            @Parameter(description = "Inventory item ID to delete") @PathVariable String id) {
         
         log.info("Deleting inventory item with ID: {}", id);
         
         inventoryItemService.delete(id);
-        ApiResponse<Void> response = ApiResponse.success("Inventory item deleted successfully");
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().build();
     }
 }

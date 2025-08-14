@@ -48,6 +48,8 @@ public interface InventoryItemMapper {
      * @param inventoryItem the inventory item entity
      * @return InventoryItemResponseDTO with complete inventory item information
      */
+    @Mapping(target = "inventoryItemCategoryId", source = "category.id")
+    @Mapping(target = "unitId", source = "unit.id")
     InventoryItemResponseDTO toResponseDTO(InventoryItem inventoryItem);
 
     /**

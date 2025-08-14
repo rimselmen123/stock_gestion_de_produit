@@ -33,6 +33,7 @@ public interface CategoryMapper {
      * @return InventoryItemCategory entity ready for persistence
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "branchId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "inventoryItems", ignore = true)

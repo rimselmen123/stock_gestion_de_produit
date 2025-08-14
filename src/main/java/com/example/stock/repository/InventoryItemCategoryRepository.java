@@ -4,6 +4,7 @@ import com.example.stock.entity.InventoryItemCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Repository;
  * @since 1.0
  */
 @Repository
-public interface InventoryItemCategoryRepository extends JpaRepository<InventoryItemCategory, String> {
+public interface InventoryItemCategoryRepository extends JpaRepository<InventoryItemCategory, String>, JpaSpecificationExecutor<InventoryItemCategory> {
     
     /**
      * Find categories by name containing the specified text (case-insensitive) with pagination.
@@ -30,4 +31,10 @@ public interface InventoryItemCategoryRepository extends JpaRepository<Inventory
     Page<InventoryItemCategory> findByNameContainingIgnoreCase(
         @Param("name") String name, 
         Pageable pageable);
+
+    /**
+     * Count how many InventoryItem entities reference the given category id.
+     */
+    @Query("SELECT COUNT(i) FROM InventoryItem i WHERE i.category.id = :id")
+    long countInventoryItemsByCategoryId(@Param("id") String id);
 }

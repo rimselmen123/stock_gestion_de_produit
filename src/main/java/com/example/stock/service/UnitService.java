@@ -26,6 +26,37 @@ public interface UnitService {
      */
     PaginatedResponse<UnitResponseDTO> findAllWithPagination(
         String search, int page, int perPage, String sortField, String sortDirection);
+
+    /**
+     * Advanced filtering for units with optional individual filters and search.
+     * All parameters are optional except pagination/sorting.
+     * Date-time parameters should be ISO-8601 strings (e.g. 2025-08-14T00:00:00).
+     *
+     * @param search       Search term applied to name or symbol (contains)
+     * @param name         Filter name (contains)
+     * @param symbol       Filter symbol (contains)
+     * @param createdFrom  Filter createdAt >= this timestamp (ISO-8601)
+     * @param createdTo    Filter createdAt <= this timestamp (ISO-8601)
+     * @param updatedFrom  Filter updatedAt >= this timestamp (ISO-8601)
+     * @param updatedTo    Filter updatedAt <= this timestamp (ISO-8601)
+     * @param page         Page number (1-based)
+     * @param perPage      Items per page
+     * @param sortField    Field to sort by (API field names)
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with units
+     */
+    PaginatedResponse<UnitResponseDTO> findAllWithFilters(
+        String search,
+        String name,
+        String symbol,
+        String createdFrom,
+        String createdTo,
+        String updatedFrom,
+        String updatedTo,
+        int page,
+        int perPage,
+        String sortField,
+        String sortDirection);
     
     /**
      * Find unit by ID or throw exception if not found.

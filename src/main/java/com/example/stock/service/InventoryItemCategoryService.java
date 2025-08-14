@@ -26,6 +26,28 @@ public interface InventoryItemCategoryService {
      */
     PaginatedResponse<CategoryResponseDTO> findAllWithPagination(
         String search, int page, int perPage, String sortField, String sortDirection);
+        
+    /**
+     * Find all categories with advanced filtering and pagination.
+     * 
+     * @param search Search term for name field
+     * @param name Filter by name (contains)
+     * @param branchId Filter by branch ID
+     * @param createdFrom Filter created_at from (ISO-8601)
+     * @param createdTo Filter created_at to (ISO-8601)
+     * @param updatedFrom Filter updated_at from (ISO-8601)
+     * @param updatedTo Filter updated_at to (ISO-8601)
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with categories
+     */
+    PaginatedResponse<CategoryResponseDTO> findAllWithFilters(
+        String search, String name, String branchId,
+        String createdFrom, String createdTo,
+        String updatedFrom, String updatedTo,
+        int page, int perPage, String sortField, String sortDirection);
     
     /**
      * Find category by ID or throw exception if not found.

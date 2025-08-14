@@ -39,19 +39,42 @@ public class CategoryController {
      * @param sortDirection Sort direction (asc/desc)
      * @return Paginated response with categories
      */
+    /**
+     * Get all categories with advanced filtering and pagination.
+     * 
+     * @param search Search term for name field
+     * @param name Filter by name (contains)
+     * @param branchId Filter by branch ID
+     * @param createdFrom Filter created_at from (ISO-8601)
+     * @param createdTo Filter created_at to (ISO-8601)
+     * @param updatedFrom Filter updated_at from (ISO-8601)
+     * @param updatedTo Filter updated_at to (ISO-8601)
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Paginated response with categories
+     */
     @GetMapping
     public ResponseEntity<PaginatedResponse<CategoryResponseDTO>> getAllCategories(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String name,
+            @RequestParam(name = "branch_id", required = false) String branchId,
+            @RequestParam(name = "created_from", required = false) String createdFrom,
+            @RequestParam(name = "created_to", required = false) String createdTo,
+            @RequestParam(name = "updated_from", required = false) String updatedFrom,
+            @RequestParam(name = "updated_to", required = false) String updatedTo,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(name = "per_page", defaultValue = "5") int perPage,
             @RequestParam(name = "sort_field", defaultValue = "created_at") String sortField,
             @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
         
-        log.debug("Getting categories with search: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
-                  search, page, perPage, sortField, sortDirection);
+        log.debug("Getting categories with filters - search: {}, name: {}, branchId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
+                search, name, branchId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
         
-        PaginatedResponse<CategoryResponseDTO> response = categoryService.findAllWithPagination(
-            search, page, perPage, sortField, sortDirection);
+        PaginatedResponse<CategoryResponseDTO> response = categoryService.findAllWithFilters(
+                search, name, branchId, createdFrom, createdTo, updatedFrom, updatedTo, 
+                page, perPage, sortField, sortDirection);
         
         return ResponseEntity.ok(response);
     }

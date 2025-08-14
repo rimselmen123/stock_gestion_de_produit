@@ -35,15 +35,16 @@ public class GlobalExceptionHandler {
         
         log.warn("Validation error: {}", ex.getMessage());
         
-        Map<String, Object> details = new HashMap<>();
+        Map<String, List<String>> fieldErrors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            
-            // Add to details as array to match API contract
-            details.computeIfAbsent(fieldName, k -> new ArrayList<String>());
-            ((List<String>) details.get(fieldName)).add(errorMessage);
+            fieldErrors.computeIfAbsent(fieldName, k -> new ArrayList<>()).add(errorMessage);
         });
+
+        // Convert to Map<String, Object> expected by ErrorResponse
+        Map<String, Object> details = new HashMap<>();
+        fieldErrors.forEach(details::put);
 
         ErrorResponse errorResponse = ErrorResponse.of(
             "Validation failed", 
