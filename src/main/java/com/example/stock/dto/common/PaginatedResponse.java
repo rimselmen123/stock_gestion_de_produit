@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-
 /**
  * Standard API response wrapper for paginated responses.
  * 
