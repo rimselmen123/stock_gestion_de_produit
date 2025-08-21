@@ -39,7 +39,9 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
-    InventoryItem toEntity(InventoryItemCreateDTO createDTO);
+    @Mapping(target = "inventoryStocks", ignore = true)
+    @Mapping(target = "movements", ignore = true)
+    InventoryItem toEntity(InventoryItemCreateDTO createDTO); // fama modification besh tsir fel dto create 
 
     /**
      * Maps InventoryItem entity to InventoryItemResponseDTO.
@@ -76,6 +78,8 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
+    @Mapping(target = "inventoryStocks", ignore = true)
+    @Mapping(target = "movements", ignore = true)
     void updateEntityFromDTO(InventoryItemUpdateDTO updateDTO, @MappingTarget InventoryItem inventoryItem);
 
     /**

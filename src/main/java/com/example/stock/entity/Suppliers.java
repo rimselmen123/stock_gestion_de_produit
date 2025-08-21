@@ -4,6 +4,8 @@
     import jakarta.persistence.Entity;
     import jakarta.persistence.Id;
     import jakarta.persistence.Table;
+    import jakarta.persistence.OneToMany;
+    import jakarta.persistence.CascadeType;
     import lombok.AllArgsConstructor;
     import lombok.Builder;
     import lombok.Data;
@@ -11,6 +13,7 @@
     import jakarta.validation.constraints.Email;
     import jakarta.validation.constraints.NotBlank;
     import java.time.LocalDateTime;
+    import java.util.List;
 
     @Entity
     @Table(name = "suppliers")
@@ -50,4 +53,8 @@
 
         @Column(name = "updated_at", nullable = false)
         private LocalDateTime updatedAt;
+
+        // Relations
+        @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
+        private List<InventoryMovement> movements;
     }

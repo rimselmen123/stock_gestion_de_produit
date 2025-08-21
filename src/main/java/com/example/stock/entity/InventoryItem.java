@@ -3,6 +3,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "inventory_item")
@@ -37,4 +38,10 @@ public class InventoryItem {
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
+    
+    @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryStock> inventoryStocks;
+
+    @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryMovement> movements;
 }
