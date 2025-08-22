@@ -69,7 +69,7 @@ public class HealthController {
             "name", environment.getProperty("spring.application.name", "Stock Management System"),
             "version", buildProperties.map(BuildProperties::getVersion).orElse("1.0.0"),
             "profiles", environment.getActiveProfiles(),
-            "port", environment.getProperty("server.port", "8080")
+            "port", environment.getProperty("server.port", "8083")
         ));
         
         // System info
