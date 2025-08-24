@@ -18,12 +18,6 @@ public class InventoryMovement {
     @Id
     private String id;
 
-    @Column(name = "inventory_item_id", nullable = false, insertable = false, updatable = false)
-    private String inventoryItemId;
-
-    @Column(name = "branch_id", nullable = false)
-    private String branchId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
@@ -57,16 +51,16 @@ public class InventoryMovement {
 
     // Relations
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_item_id")
-    private InventoryItem inventoryItem;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_stock_id")
+    @JoinColumn(name = "inventory_stock_id", nullable = false)
     private InventoryStock inventoryStock;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Suppliers supplier;
+
+    public enum TransactionType {
+        IN, OUT, WASTE, TRANSFER
+    }
 
     @PrePersist
     protected void onCreate() {
@@ -77,9 +71,5 @@ public class InventoryMovement {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public enum TransactionType {
-        IN, OUT, WASTE, TRANSFER
     }
 }

@@ -25,15 +25,8 @@ public class InventoryStock {
     @Column(name = "branch_id", nullable = false)
     private String branchId;
 
-    // hethi lel types pour faire le controles 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false)
-    private TransactionType transactionType;
-
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
-
-
 
     @Column(name = "unit_purchase_price", precision = 10, scale = 2)
     private BigDecimal unitPurchasePrice;
@@ -52,7 +45,7 @@ public class InventoryStock {
     @JoinColumn(name = "inventory_item_id")
     private InventoryItem inventoryItem;
 
-    // Relation with movements
+    // Relation avec l’historique
     @OneToMany(mappedBy = "inventoryStock", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<InventoryMovement> movements;
 
@@ -66,8 +59,4 @@ public class InventoryStock {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-    public enum TransactionType {
-        IN, OUT, WASTE, TRANSFER
-    }
-
 }
