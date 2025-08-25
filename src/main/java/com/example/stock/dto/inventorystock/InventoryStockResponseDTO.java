@@ -1,21 +1,17 @@
 package com.example.stock.dto.inventorystock;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 /**
- * Data Transfer Object for inventory stock read responses.
- * Contains complete inventory stock information including embedded inventory item details.
- * 
- * @author Generated
- * @since 1.0
+ * Complete DTO for inventory stock responses, aligned with frontend contract.
  */
 @Data
 @NoArgsConstructor
@@ -45,15 +41,21 @@ public class InventoryStockResponseDTO {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
+    // hethom lel calcule mtack stock wel alert w jaw heka lkol 
+    // /**
+    //  * Stock status (NORMAL, ALERTE_BASSE, RUPTURE)
+    //  */
+    // @JsonProperty("stock_status")
+    // private String stockStatus;
+
     /**
-     * Embedded inventory item information for convenience.
-     * Contains minimal item details to avoid deep nesting.
+     * Embedded inventory item information.
      */
     @JsonProperty("inventory_item")
     private InventoryItemEmbeddedDTO inventoryItem;
 
     /**
-     * Nested DTO for embedded inventory item information in stock responses.
+     * Nested DTO for embedded inventory item information.
      */
     @Data
     @NoArgsConstructor

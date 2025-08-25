@@ -31,8 +31,8 @@ public class InventoryMovement {
     @Column(name = "supplier_id", insertable = false, updatable = false)
     private String supplierId;
 
-    @Column(name = "destination_branch_id")
-    private String destinationBranchId;
+    @Column(name = "branch_id")
+    private String branchId;
 
     @Column(name = "waste_reason")
     private String wasteReason;
