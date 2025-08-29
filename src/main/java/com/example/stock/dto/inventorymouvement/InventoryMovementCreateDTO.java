@@ -50,4 +50,8 @@ public class InventoryMovementCreateDTO {
 
     @JsonProperty("expiration_date")
     private LocalDate expirationDate;
+
+    // Needed for TRANSFER transactions
+    @JsonProperty("destination_branch_id")
+    private String destinationBranchId;
 }

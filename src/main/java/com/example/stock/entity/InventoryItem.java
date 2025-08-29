@@ -24,6 +24,9 @@ public class InventoryItem {
     @Column(name = "reorder_quantity", nullable = false)
     private int reorderQuantity;
 
+    @Column(name = "current_quantity", nullable = false)
+    private int currentQuantity;
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -38,10 +41,12 @@ public class InventoryItem {
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
-    
-    @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<InventoryStock> inventoryStocks;
-
+    //relation m3a inventory mouvement tiko
     @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryMovement> movements;
+    //relation m3a branch hoa actuellemnt kol  branche relie avec un inventory item
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
+
 }

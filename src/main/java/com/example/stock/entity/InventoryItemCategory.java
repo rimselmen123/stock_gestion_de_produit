@@ -19,7 +19,7 @@ public class InventoryItemCategory {
     private String name;
 
     @Column(name = "branch_id", nullable = false)
-    private String branchId;
+    private String branchId;    
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -30,4 +30,9 @@ public class InventoryItemCategory {
     // Relation avec InventoryItem
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<InventoryItem> inventoryItems;
+    //relation jdida m3a l branche 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
+
 }

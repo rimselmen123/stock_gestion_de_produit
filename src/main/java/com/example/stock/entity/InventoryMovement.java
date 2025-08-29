@@ -13,10 +13,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// la class de l'inventory management joueer  le role de inventory management et inventory stock en meme temps
 public class InventoryMovement {
 
     @Id
     private String id;
+
+    @Column(name = "inventory_item_id", nullable = false, insertable = false, updatable = false)
+    private String inventoryItemId;
+
+    @Column(name = "branch_id")
+    private String branchId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
@@ -25,17 +32,11 @@ public class InventoryMovement {
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 
-    @Column(name = "unit_purchase_price", precision = 10, scale = 2)
+    @Column(name = "unit_purchase_price", precision = 10, scale = 2 , nullable = false)
     private BigDecimal unitPurchasePrice;
 
     @Column(name = "supplier_id", insertable = false, updatable = false)
     private String supplierId;
-
-    @Column(name = "branch_id")
-    private String branchId;
-
-    @Column(name = "waste_reason")
-    private String wasteReason;
 
     @Column(name = "notes")
     private String notes;
@@ -49,14 +50,27 @@ public class InventoryMovement {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Relations
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_stock_id", nullable = false)
-    private InventoryStock inventoryStock;
+    @Column(name = "destination_branch_id")
+    private String destinationBranchId;
 
+    @Column(name = "waste_reason")
+    private String wasteReason;
+    //relation m3a inventory item
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_item_id")
+    private InventoryItem inventoryItem;
+    // relation m3a supplier
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id")
     private Suppliers supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;  // branche source
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_branch_id")
+    private Branch destinationBranch; // branche destination (utile pour TRANSFER)
 
     public enum TransactionType {
         IN, OUT, WASTE, TRANSFER

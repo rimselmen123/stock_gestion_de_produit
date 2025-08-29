@@ -31,9 +31,15 @@ public interface InventoryMovementMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "inventoryStock", ignore = true)
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "supplierId", source = "supplierId")
+    @Mapping(target = "inventoryItem", ignore = true)
+    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "branchId", source = "branchId")
+    @Mapping(target = "destinationBranch", ignore = true)
+    @Mapping(target = "destinationBranchId", source = "destinationBranchId")
+    @Mapping(target = "unitPurchasePrice", ignore = true)
     InventoryMovement toEntity(InventoryMovementCreateDTO createDTO);
 
     /**
@@ -43,12 +49,12 @@ public interface InventoryMovementMapper {
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementResponseDTO with complete inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryStock.inventoryItem.id")
-    @Mapping(target = "inventoryItem.id", source = "inventoryStock.inventoryItem.id")
-    @Mapping(target = "inventoryItem.name", source = "inventoryStock.inventoryItem.name")
+    @Mapping(target = "inventoryItemId", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
     @Mapping(target = "supplier.id", source = "supplier.id")
     @Mapping(target = "supplier.name", source = "supplier.name")
-    @Mapping(target = "destinationBranchId", ignore = true) // Not in entity, handled at service level
+    @Mapping(target = "destinationBranchId", source = "destinationBranchId")
     InventoryMovementResponseDTO toResponseDTO(InventoryMovement inventoryMovement);
 
     /**
@@ -58,9 +64,9 @@ public interface InventoryMovementMapper {
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementSummaryDTO with essential inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryStock.inventoryItem.id")
-    @Mapping(target = "inventoryItem.id", source = "inventoryStock.inventoryItem.id")
-    @Mapping(target = "inventoryItem.name", source = "inventoryStock.inventoryItem.name")
+    @Mapping(target = "inventoryItemId", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
     @Mapping(target = "supplier.id", source = "supplier.id")
     @Mapping(target = "supplier.name", source = "supplier.name")
     InventoryMovementSummaryDTO toSummaryDTO(InventoryMovement inventoryMovement);
@@ -77,10 +83,13 @@ public interface InventoryMovementMapper {
     @Mapping(target = "transactionType", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "inventoryStock", ignore = true)
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "branchId", ignore = true)
     @Mapping(target = "unitPurchasePrice", ignore = true) // Not updatable in UpdateDTO
+    @Mapping(target = "inventoryItem", ignore = true)
+    @Mapping(target = "inventoryItemId", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "destinationBranch", ignore = true)
     void updateEntityFromDTO(InventoryMovementUpdateDTO updateDTO, @MappingTarget InventoryMovement inventoryMovement);
 
     /**
