@@ -31,8 +31,8 @@ public class InventoryItemCategory {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<InventoryItem> inventoryItems;
     //relation jdida m3a l branche 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    private Branch branch;
+    //@ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "branch_id", nullable = false)
+    //@private Branch branch;
 
 }

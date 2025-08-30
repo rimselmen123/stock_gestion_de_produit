@@ -35,9 +35,9 @@ public interface InventoryMovementMapper {
     @Mapping(target = "supplierId", source = "supplierId")
     @Mapping(target = "inventoryItem", ignore = true)
     @Mapping(target = "inventoryItemId", source = "inventoryItemId")
-    @Mapping(target = "branch", ignore = true)
+    //@Mapping(target = "branch", ignore = true)
     @Mapping(target = "branchId", source = "branchId")
-    @Mapping(target = "destinationBranch", ignore = true)
+    //@Mapping(target = "destinationBranch", ignore = true)
     @Mapping(target = "destinationBranchId", source = "destinationBranchId")
     @Mapping(target = "unitPurchasePrice", ignore = true)
     InventoryMovement toEntity(InventoryMovementCreateDTO createDTO);
@@ -54,7 +54,7 @@ public interface InventoryMovementMapper {
     @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
     @Mapping(target = "supplier.id", source = "supplier.id")
     @Mapping(target = "supplier.name", source = "supplier.name")
-    @Mapping(target = "destinationBranchId", source = "destinationBranchId")
+    //@Mapping(target = "destinationBranchId", source = "destinationBranchId")
     InventoryMovementResponseDTO toResponseDTO(InventoryMovement inventoryMovement);
 
     /**
@@ -88,8 +88,8 @@ public interface InventoryMovementMapper {
     @Mapping(target = "unitPurchasePrice", ignore = true) // Not updatable in UpdateDTO
     @Mapping(target = "inventoryItem", ignore = true)
     @Mapping(target = "inventoryItemId", ignore = true)
-    @Mapping(target = "branch", ignore = true)
-    @Mapping(target = "destinationBranch", ignore = true)
+    //@Mapping(target = "branch", ignore = true)
+    //@Mapping(target = "destinationBranch", ignore = true)
     void updateEntityFromDTO(InventoryMovementUpdateDTO updateDTO, @MappingTarget InventoryMovement inventoryMovement);
 
     /**

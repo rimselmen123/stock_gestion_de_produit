@@ -21,7 +21,7 @@ public class InventoryMovement {
 
     @Column(name = "inventory_item_id", nullable = false, insertable = false, updatable = false)
     private String inventoryItemId;
-
+    //khalihe branche id  telab nafs  branche name  w branche id 
     @Column(name = "branch_id")
     private String branchId;
 
@@ -64,14 +64,16 @@ public class InventoryMovement {
     @JoinColumn(name = "supplier_id")
     private Suppliers supplier;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    //ba3ed  hethom les  insersions
+   /*  @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;  // branche source
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_branch_id")
     private Branch destinationBranch; // branche destination (utile pour TRANSFER)
-
+ */
     public enum TransactionType {
         IN, OUT, WASTE, TRANSFER
     }

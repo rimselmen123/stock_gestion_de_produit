@@ -47,7 +47,7 @@ public class InventoryMovementSummaryDTO {
     private LocalDateTime createdAt;
 
     @JsonProperty("inventory_item")
-    private InventoryMovementResponseDTO.InventoryItemEmbeddedDTO inventoryItem;
+    private InventoryMovementResponseDTO.SimpleDTO  inventoryItem;
 
-    private InventoryMovementResponseDTO.SupplierEmbeddedDTO supplier;
+    private InventoryMovementResponseDTO.SimpleDTO supplier;
 }

@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
+//import java.util.List;
+// hethi  l creation mta3 l branche taw nchofoha 
 @Entity
 @Table(name = "branch")
 @Data
@@ -28,11 +28,11 @@ public class Branch {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
+/* 
     // Relations
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
     private List<InventoryItemCategory> categories;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    private List<InventoryMovement> movements;
+    private List<InventoryMovement> movements; */
 }
