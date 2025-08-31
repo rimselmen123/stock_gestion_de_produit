@@ -34,8 +34,7 @@ public final class InventoryMovementSpecifications {
         return (root, query, cb) -> {
             if (name == null || name.isBlank()) return cb.conjunction();
             if (query != null) query.distinct(true);
-            var stockJoin = root.join("inventoryStock", JoinType.LEFT);
-            var itemJoin = stockJoin.join("inventoryItem", JoinType.LEFT);
+            var itemJoin = root.join("inventoryItem", JoinType.LEFT);
             return cb.like(cb.lower(itemJoin.get("name")), "%" + name.toLowerCase() + "%");
         };
     }
@@ -45,8 +44,7 @@ public final class InventoryMovementSpecifications {
             if (term == null || term.isBlank()) return cb.conjunction();
             if (query != null) query.distinct(true);
             var lowered = "%" + term.toLowerCase() + "%";
-            var stockJoin = root.join("inventoryStock", JoinType.LEFT);
-            var itemJoin = stockJoin.join("inventoryItem", JoinType.LEFT);
+            var itemJoin = root.join("inventoryItem", JoinType.LEFT);
             return cb.or(
                 cb.like(cb.lower(itemJoin.get("name")), lowered),
                 cb.like(cb.lower(itemJoin.get("id")), lowered),

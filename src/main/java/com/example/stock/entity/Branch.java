@@ -1,6 +1,6 @@
 package com.example.stock.entity;
 
-import jakarta.persistence.*;
+/* import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -34,5 +34,4 @@ public class Branch {
     private List<InventoryItemCategory> categories;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    private List<InventoryMovement> movements; */
-}
+    private List<InventoryMovement> movements; }*/

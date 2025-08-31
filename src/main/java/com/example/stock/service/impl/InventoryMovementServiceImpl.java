@@ -4,14 +4,14 @@ import com.example.stock.dto.inventorymouvement.InventoryMovementCreateDTO;
 import com.example.stock.dto.inventorymouvement.InventoryMovementResponseDTO;
 import com.example.stock.entity.InventoryMovement;
 import com.example.stock.entity.InventoryMovement.TransactionType;
-import com.example.stock.entity.Suppliers;
-import com.example.stock.exception.ResourceNotFoundException;
 import com.example.stock.mapper.InventoryMovementMapper;
 import com.example.stock.repository.InventoryMovementRepository;
-import com.example.stock.repository.SuppliersRepository;
 import com.example.stock.service.InventoryMovementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +25,11 @@ import java.util.UUID;
 public class InventoryMovementServiceImpl implements InventoryMovementService {
 
     private final InventoryMovementRepository inventoryMovementRepository;
-    private final SuppliersRepository suppliersRepository;
     private final InventoryMovementMapper inventoryMovementMapper;
 
     @Override
     @Transactional
-    public InventoryMovementResponseDTO createEntry(InventoryMovementCreateDTO dto) {
+    public InventoryMovementResponseDTO createMovement(InventoryMovementCreateDTO dto) {
         log.info("Creating inventory movement: item={}, branch={}, type={}, qty={}",
                 dto.getInventoryItemId(), dto.getBranchId(), dto.getTransactionType(), dto.getQuantity());
 
@@ -87,17 +86,17 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
         movement.setCreatedAt(LocalDateTime.now());
         movement.setUpdatedAt(LocalDateTime.now());
 
-        // Set supplier relation if provided
-        if (dto.getSupplierId() != null && !dto.getSupplierId().isBlank()) {
-            try {
-                Suppliers supplierRef = suppliersRepository.getReferenceById(dto.getSupplierId());
-                movement.setSupplier(supplierRef);
-            } catch (Exception ex) {
-                throw new ResourceNotFoundException("Supplier", dto.getSupplierId());
-            }
-        }
-
         InventoryMovement savedMovement = inventoryMovementRepository.save(movement);
         return inventoryMovementMapper.toResponseDTO(savedMovement);
     }
+
+    @Override
+    public Page<InventoryMovementResponseDTO> getAllMovements(Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public InventoryMovementResponseDTO getMovementById(String id) {
+        return null;    
+            }
 }

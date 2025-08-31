@@ -16,7 +16,8 @@ import java.util.List;
  */
 @Mapper(
     componentModel = "spring",
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+    nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
 )
 public interface InventoryMovementMapper {
 
@@ -39,7 +40,7 @@ public interface InventoryMovementMapper {
     @Mapping(target = "branchId", source = "branchId")
     //@Mapping(target = "destinationBranch", ignore = true)
     @Mapping(target = "destinationBranchId", source = "destinationBranchId")
-    @Mapping(target = "unitPurchasePrice", ignore = true)
+    @Mapping(target = "unitPurchasePrice", source = "unitPurchasePrice")
     InventoryMovement toEntity(InventoryMovementCreateDTO createDTO);
 
     /**
@@ -49,7 +50,7 @@ public interface InventoryMovementMapper {
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementResponseDTO with complete inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
     @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
     @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
     @Mapping(target = "supplier.id", source = "supplier.id")
@@ -64,7 +65,7 @@ public interface InventoryMovementMapper {
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementSummaryDTO with essential inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryItem.id")
+    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
     @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
     @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
     @Mapping(target = "supplier.id", source = "supplier.id")

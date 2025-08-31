@@ -19,10 +19,10 @@ public class InventoryMovement {
     @Id
     private String id;
 
-    @Column(name = "inventory_item_id", nullable = false, insertable = false, updatable = false)
+    @Column(name = "inventory_item_id", nullable = false)
     private String inventoryItemId;
     //khalihe branche id  telab nafs  branche name  w branche id 
-    @Column(name = "branch_id")
+    @Column(name = "branch_id", nullable = false)
     private String branchId;
 
     @Enumerated(EnumType.STRING)
@@ -32,10 +32,10 @@ public class InventoryMovement {
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 
-    @Column(name = "unit_purchase_price", precision = 10, scale = 2 , nullable = false)
+    @Column(name = "unit_purchase_price", precision = 10, scale = 2)
     private BigDecimal unitPurchasePrice;
 
-    @Column(name = "supplier_id", insertable = false, updatable = false)
+    @Column(name = "supplier_id")
     private String supplierId;
 
     @Column(name = "notes")
@@ -57,11 +57,11 @@ public class InventoryMovement {
     private String wasteReason;
     //relation m3a inventory item
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_item_id")
+    @JoinColumn(name = "inventory_item_id",insertable = false, updatable = false)
     private InventoryItem inventoryItem;
     // relation m3a supplier
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id")
+    @JoinColumn(name = "supplier_id",insertable = false, updatable = false)
     private Suppliers supplier;
 
 

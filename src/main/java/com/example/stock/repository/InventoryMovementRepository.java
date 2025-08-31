@@ -17,7 +17,7 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
     // -----------------------------
     // Simple finders with pagination
     // -----------------------------
-    Page<InventoryMovement> findByBranchId(String branchId, Pageable  é);
+    Page<InventoryMovement> findByBranchId(String branchId, Pageable pageable);
     Page<InventoryMovement> findBySupplierId(String supplierId, Pageable pageable);
     Page<InventoryMovement> findByTransactionType(InventoryMovement.TransactionType transactionType, Pageable pageable);
 
