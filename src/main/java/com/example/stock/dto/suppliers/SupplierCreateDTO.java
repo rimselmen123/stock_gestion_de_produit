@@ -22,7 +22,7 @@ public class SupplierCreateDTO {
 
     @NotBlank(message = "Name is required")
     private String name;
-   //lbe9i hethom lkoll optionnels 
+   //lbe9i hethom lkoll optionnels
     @Email(message = "invalide format email")
     private String email;
 

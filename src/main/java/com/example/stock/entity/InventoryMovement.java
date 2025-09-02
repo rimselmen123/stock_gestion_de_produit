@@ -18,10 +18,14 @@ public class InventoryMovement {
 
     @Id
     private String id;
-
+    
+    // Foreign keys (scalar) kept for simpler writes & specifications
     @Column(name = "inventory_item_id", nullable = false)
     private String inventoryItemId;
-    //khalihe branche id  telab nafs  branche name  w branche id 
+
+    @Column(name = "supplier_id")
+    private String supplierId;
+    //khalihe branche id  telab nafs  branche name  w branche id
     @Column(name = "branch_id", nullable = false)
     private String branchId;
 
@@ -34,10 +38,6 @@ public class InventoryMovement {
 
     @Column(name = "unit_purchase_price", precision = 10, scale = 2)
     private BigDecimal unitPurchasePrice;
-
-    @Column(name = "supplier_id")
-    private String supplierId;
-
     @Column(name = "notes")
     private String notes;
 
@@ -55,13 +55,14 @@ public class InventoryMovement {
 
     @Column(name = "waste_reason")
     private String wasteReason;
-    //relation m3a inventory item
+    //relation m3a inventory item (read-only association set via FK field)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_item_id",insertable = false, updatable = false)
+    @JoinColumn(name = "inventory_item_id", insertable = false, updatable = false)
     private InventoryItem inventoryItem;
-    // relation m3a supplier
+
+    // relation m3a supplier (optional)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id",insertable = false, updatable = false)
+    @JoinColumn(name = "supplier_id", insertable = false, updatable = false)
     private Suppliers supplier;
 
 

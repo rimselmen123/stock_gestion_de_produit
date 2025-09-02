@@ -27,33 +27,4 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
     List<InventoryMovement> findAllByOrderByUpdatedAtDesc();
     Page<InventoryMovement> findAllByOrderByUpdatedAtDesc(Pageable pageable);
     Page<InventoryMovement> findByBranchIdOrderByUpdatedAtDesc(String branchId, Pageable pageable);
-
-    // -----------------------------
-    // Search (case-insensitive) with pagination
-    // -----------------------------
-    /**
-     * Global text search over movement fields and related inventory item name/id.
-     * Uses nested property navigation via Spring Data naming convention.
-     */
-    Page<InventoryMovement> findByInventoryStock_InventoryItem_NameContainingIgnoreCaseOrInventoryStock_InventoryItem_IdContainingIgnoreCaseOrSupplierIdContainingIgnoreCaseOrBranchIdContainingIgnoreCaseOrNotesContainingIgnoreCase(
-        String itemName,
-        String itemId,
-        String supplierId,
-        String branchId,
-        String notes,
-        Pageable pageable
-    );
-
-    /**
-     * Same as above but enforcing sorting by most recently updated first.
-     */
-    Page<InventoryMovement> findByInventoryStock_InventoryItem_NameContainingIgnoreCaseOrInventoryStock_InventoryItem_IdContainingIgnoreCaseOrSupplierIdContainingIgnoreCaseOrBranchIdContainingIgnoreCaseOrNotesContainingIgnoreCaseOrderByUpdatedAtDesc(
-        String itemName,
-        String itemId,
-        String supplierId,
-        String branchId,
-        String notes,
-        Pageable pageable
-    );
-    
 }

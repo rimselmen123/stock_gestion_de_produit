@@ -1,7 +1,6 @@
     package com.example.stock.dto.inventorymouvement;
 
     import com.example.stock.entity.InventoryMovement;
-    //import com.example.stock.entity.InventoryMovement.TransactionType;
     import com.fasterxml.jackson.annotation.JsonProperty;
     import lombok.AllArgsConstructor;
     import lombok.Builder;
@@ -39,6 +38,10 @@
         private String notes;
         @JsonProperty("expiration_date")
         private LocalDate expirationDate;
+    @JsonProperty("waste_reason")
+    private String wasteReason;
+    @JsonProperty("destination_branch_id")
+    private String destinationBranchId;
         @JsonProperty("created_at")
         private LocalDateTime createdAt;
         @JsonProperty("updated_at")
@@ -58,6 +61,8 @@
                     .supplierId(entity.getSupplier() != null ? entity.getSupplier().getId() : null)
                     .notes(entity.getNotes())
                     .expirationDate(entity.getExpirationDate())
+                    .wasteReason(entity.getWasteReason())
+                    .destinationBranchId(entity.getDestinationBranchId())
                     .createdAt(entity.getCreatedAt())
                     .updatedAt(entity.getUpdatedAt())
                     .inventoryItem(new SimpleDTO(entity.getInventoryItem().getId(), entity.getInventoryItem().getName()))
@@ -67,6 +72,7 @@
         }
 
         @Data
+        @NoArgsConstructor
         @AllArgsConstructor
         public static class SimpleDTO {
             @JsonProperty("id")

@@ -46,6 +46,12 @@ public class InventoryMovementSummaryDTO {
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
+    @JsonProperty("waste_reason")
+    private String wasteReason;
+
+    @JsonProperty("destination_branch_id")
+    private String destinationBranchId;
+
     @JsonProperty("inventory_item")
     private InventoryMovementResponseDTO.SimpleDTO  inventoryItem;
 

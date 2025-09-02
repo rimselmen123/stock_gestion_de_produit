@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder    
+@Builder
 public class InventoryItem {
 
     @Id
