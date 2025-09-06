@@ -33,10 +33,11 @@ public interface CategoryMapper {
      * @return InventoryItemCategory entity ready for persistence
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "branchId", ignore = true)
+    @Mapping(target = "departmentId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "inventoryItems", ignore = true)
+    @Mapping(target = "department", ignore = true)
     InventoryItemCategory toEntity(CategoryCreateDTO createDTO);
 
     /**
@@ -60,16 +61,17 @@ public interface CategoryMapper {
     /**
      * Maps CategoryUpdateDTO to existing InventoryItemCategory entity.
      * Updates only the provided fields, ignoring null values.
-     * Note: branchId is not updated as it's immutable after creation.
+    * Note: departmentId is not updated as it's immutable after creation.
      * 
      * @param updateDTO the category update data
      * @param category the existing category entity to update
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "branchId", ignore = true)
+    @Mapping(target = "departmentId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "inventoryItems", ignore = true)
+    @Mapping(target = "department", ignore = true)
     void updateEntityFromDTO(CategoryUpdateDTO updateDTO, @MappingTarget InventoryItemCategory category);
 
     /**

@@ -32,8 +32,8 @@ public class CategorySummaryDTO {
     private String name;
 
     /**
-     * The branch ID this category belongs to.
+     * The department ID this category belongs to.
      */
-    @JsonProperty("branch_id")
-    private String branchId;
+    @JsonProperty("department_id")
+    private String departmentId;
 }

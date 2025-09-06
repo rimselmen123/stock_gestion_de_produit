@@ -6,7 +6,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "inventory_item_category")
+@Table(name = "inventory_item_category",
+       indexes = {
+           @Index(name = "idx_item_category_department", columnList = "department_id")
+       })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,8 +21,9 @@ public class InventoryItemCategory {
 
     private String name;
 
-    @Column(name = "branch_id", nullable = false)
-    private String branchId;    
+    // Each category belongs to a department
+    @Column(name = "department_id", nullable = false)
+    private String departmentId;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -27,12 +31,18 @@ public class InventoryItemCategory {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Relation avec InventoryItem
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    // Relation avec InventoryItem (read-only back-reference)
+    @OneToMany(mappedBy = "category")
     private List<InventoryItem> inventoryItems;
-    //relation jdida m3a l branche 
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "branch_id", nullable = false)
-    //@private Branch branch;
+
+    // Read-only association to Department (backed by departmentId)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", insertable = false, updatable = false)
+    private Department department;
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 }

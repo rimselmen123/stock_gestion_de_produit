@@ -13,6 +13,11 @@ import org.springframework.util.StringUtils;
  */
 public class InventoryItemSpecifications {
 
+    // Private constructor to prevent instantiation
+    private InventoryItemSpecifications() {
+        throw new UnsupportedOperationException("Utility class");
+    }
+
     /**
      * Creates a specification to filter items by name (partial match, case-insensitive).
      * 

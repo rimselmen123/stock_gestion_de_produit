@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "inventory_item")
+@Table(name = "inventory_item",
+       indexes = {
+           @Index(name = "idx_inventory_item_category", columnList = "inventory_item_category_id"),
+           @Index(name = "idx_inventory_item_name", columnList = "name")
+       })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,8 +28,7 @@ public class InventoryItem {
     @Column(name = "reorder_quantity", nullable = false)
     private int reorderQuantity;
 
-    //@Column(name = "current_quantity", nullable = false) nekthom  en commentaire 
-    //private int currentQuantity;
+    // currentQuantity removed in favor of InventoryStock aggregation
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -41,12 +44,9 @@ public class InventoryItem {
     @ManyToOne
     @JoinColumn(name = "unit_id", nullable = false)
     private Unit unit;
-    //relation m3a inventory mouvement tiko
-    @OneToMany(mappedBy = "inventoryItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Relation m3a inventory mouvement (history). No cascade REMOVE from item side to preserve history.
+    @OneToMany(mappedBy = "inventoryItem")
     private List<InventoryMovement> movements;
-    //relation m3a branch hoa actuellemnt kol  branche relie avec un inventory item
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "branch_id", nullable = false)
-    //@private Branch branch;
+    // Branch relationship handled via category.branchId and stock granularity
 
 }

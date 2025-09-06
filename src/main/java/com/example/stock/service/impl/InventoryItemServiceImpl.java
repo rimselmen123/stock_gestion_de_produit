@@ -392,7 +392,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         CategoryResponseDTO categoryDTO = new CategoryResponseDTO(
             inventoryItem.getCategory().getId(),
             inventoryItem.getCategory().getName(),
-            inventoryItem.getCategory().getBranchId(),
+            inventoryItem.getCategory().getDepartmentId(),
             inventoryItem.getCategory().getCreatedAt(),
             inventoryItem.getCategory().getUpdatedAt()
         );

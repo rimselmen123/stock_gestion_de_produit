@@ -1,13 +1,17 @@
 package com.example.stock.entity;
 
-/* import jakarta.persistence.*;
+ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-//import java.util.List;
-// hethi  l creation mta3 l branche taw nchofoha 
+import java.util.List;
+// hethi  l creation mta3 l branche taw nchofoha
 @Entity
-@Table(name = "branch")
+@Table(name = "branch",
+       indexes = {
+           @Index(name = "idx_branch_name", columnList = "name", unique = true),
+           @Index(name = "idx_branch_location", columnList = "location")
+       })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,17 +25,19 @@ public class Branch {
     private String name;
 
     @Column(name = "location")
-    private String location; // facultatif, adresse ou ville
+    private String location ; // facultatif, adresse ou ville
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-/* 
-    // Relations
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    private List<InventoryItemCategory> categories;
 
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    private List<InventoryMovement> movements; }*/
+    // Relations (read-only back references to reduce coupling)
+
+    @OneToMany(mappedBy = "branch")
+    private List<InventoryMovement> movements;
+
+    @OneToMany(mappedBy = "branch")
+    private List<Department> departments;
+}

@@ -37,102 +37,121 @@ import java.util.UUID;
 @Transactional
 public class InventoryItemCategoryServiceImpl implements InventoryItemCategoryService {
 
+    private static final String CREATED_AT_FIELD = "createdAt";
+    private static final String UPDATED_AT_FIELD = "updatedAt";
+    private static final String CATEGORY_ENTITY = "Category";
+
     private final InventoryItemCategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<CategoryResponseDTO> findAllWithFilters(
-            String search, String name, String branchId,
+            String search, String name, String departmentId,
             String createdFrom, String createdTo,
             String updatedFrom, String updatedTo,
             int page, int perPage, String sortField, String sortDirection) {
 
-        log.debug("Finding categories with filters - search: {}, name: {}, branchId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
-                search, name, branchId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+        log.debug("Finding categories with filters - search: {}, name: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
 
-        // Validate and adjust pagination parameters
-        page = Math.max(1, page);
-        perPage = Math.min(Math.max(1, perPage), 100);
-
-        // Create sort object
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, mapSortField(sortField));
-
-        Pageable pageable = PageRequest.of(page - 1, perPage, sort);
-
-        // Build specification based on filters
-        Specification<InventoryItemCategory> spec = (root, query, criteriaBuilder) -> {
-            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
-
-            // Search term (name or description)
-            if (search != null && !search.trim().isEmpty()) {
-                String searchPattern = "%" + search.toLowerCase() + "%";
-                predicates.add(criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), searchPattern)
-                ));
-            }
-
-            // Name filter
-            if (name != null && !name.trim().isEmpty()) {
-                String namePattern = "%" + name.toLowerCase() + "%";
-                predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("name")), namePattern));
-            }
-
-            // Branch ID filter
-            if (branchId != null && !branchId.trim().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("branchId"), branchId));
-            }
-
-            // Created date range
-            if (createdFrom != null) {
-                try {
-                    LocalDateTime from = LocalDateTime.parse(createdFrom);
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), from));
-                } catch (Exception e) {
-                    log.warn("Invalid createdFrom date format: {}", createdFrom);
-                }
-            }
-            if (createdTo != null) {
-                try {
-                    LocalDateTime to = LocalDateTime.parse(createdTo);
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), to));
-                } catch (Exception e) {
-                    log.warn("Invalid createdTo date format: {}", createdTo);
-                }
-            }
-
-            // Updated date range
-            if (updatedFrom != null) {
-                try {
-                    LocalDateTime from = LocalDateTime.parse(updatedFrom);
-                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("updatedAt"), from));
-                } catch (Exception e) {
-                    log.warn("Invalid updatedFrom date format: {}", updatedFrom);
-                }
-            }
-            if (updatedTo != null) {
-                try {
-                    LocalDateTime to = LocalDateTime.parse(updatedTo);
-                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("updatedAt"), to));
-                } catch (Exception e) {
-                    log.warn("Invalid updatedTo date format: {}", updatedTo);
-                }
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-        };
-
+        Pageable pageable = createPageable(page, perPage, sortField, sortDirection);
+        Specification<InventoryItemCategory> spec = buildFilterSpecification(search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo);
+        
         Page<InventoryItemCategory> categoryPage = categoryRepository.findAll(spec, pageable);
-
         List<CategoryResponseDTO> categoryDTOs = categoryPage.getContent().stream()
                 .map(this::convertToResponseDTO)
                 .toList();
 
-        PaginationInfo paginationInfo = PaginationInfo.of(
-                page, perPage, categoryPage.getTotalElements());
-
+        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, categoryPage.getTotalElements());
         return PaginatedResponse.of(categoryDTOs, paginationInfo);
+    }
+
+    private Pageable createPageable(int page, int perPage, String sortField, String sortDirection) {
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+        
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, mapSortField(sortField));
+        
+        return PageRequest.of(page - 1, perPage, sort);
+    }
+
+    private Specification<InventoryItemCategory> buildFilterSpecification(
+            String search, String name, String departmentId,
+            String createdFrom, String createdTo,
+            String updatedFrom, String updatedTo) {
+        
+        return (root, query, criteriaBuilder) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+
+            addSearchFilter(predicates, root, criteriaBuilder, search);
+            addNameFilter(predicates, root, criteriaBuilder, name);
+            addDepartmentFilter(predicates, root, criteriaBuilder, departmentId);
+            addDateRangeFilters(predicates, root, criteriaBuilder, createdFrom, createdTo, updatedFrom, updatedTo);
+
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+    }
+
+    private void addSearchFilter(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                                jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                                jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
+                                String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            String searchPattern = "%" + search.toLowerCase() + "%";
+            predicates.add(criteriaBuilder.or(
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), searchPattern)
+            ));
+        }
+    }
+
+    private void addNameFilter(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                              jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                              jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
+                              String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            String namePattern = "%" + name.toLowerCase() + "%";
+            predicates.add(criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("name")), namePattern));
+        }
+    }
+
+    private void addDepartmentFilter(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                                    jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                                    jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
+                                    String departmentId) {
+        if (departmentId != null && !departmentId.trim().isEmpty()) {
+            predicates.add(criteriaBuilder.equal(root.get("departmentId"), departmentId));
+        }
+    }
+
+    private void addDateRangeFilters(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                                    jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                                    jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                                    String createdFrom, String createdTo, 
+                                    String updatedFrom, String updatedTo) {
+        addDateFilter(predicates, root, criteriaBuilder, createdFrom, CREATED_AT_FIELD, true);
+        addDateFilter(predicates, root, criteriaBuilder, createdTo, CREATED_AT_FIELD, false);
+        addDateFilter(predicates, root, criteriaBuilder, updatedFrom, UPDATED_AT_FIELD, true);
+        addDateFilter(predicates, root, criteriaBuilder, updatedTo, UPDATED_AT_FIELD, false);
+    }
+
+    private void addDateFilter(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                              jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                              jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder,
+                              String dateString, String fieldName, boolean isFromDate) {
+        if (dateString != null) {
+            try {
+                LocalDateTime date = LocalDateTime.parse(dateString);
+                if (isFromDate) {
+                    predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get(fieldName), date));
+                } else {
+                    predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get(fieldName), date));
+                }
+            } catch (Exception e) {
+                log.warn("Invalid {} date format: {}", isFromDate ? "from" : "to", dateString);
+            }
+        }
     }
 
 
@@ -180,7 +199,7 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         log.debug("Finding category by ID: {}", id);
 
         InventoryItemCategory category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_ENTITY, id));
 
         return convertToResponseDTO(category);
     }
@@ -190,13 +209,13 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         log.info("Creating new category with name: {}", createDTO.getName());
 
         // Create entity
-        InventoryItemCategory category = InventoryItemCategory.builder()
-                .id(UUID.randomUUID().toString())
-                .name(createDTO.getName())
-                .branchId("default-branch") // Set default branch for now
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+    InventoryItemCategory category = InventoryItemCategory.builder()
+        .id(UUID.randomUUID().toString())
+        .name(createDTO.getName())
+        .departmentId(createDTO.getDepartmentId()) // set owning department
+        .createdAt(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
+        .build();
 
         InventoryItemCategory savedCategory = categoryRepository.save(category);
         log.info("Category created successfully with ID: {}", savedCategory.getId());
@@ -209,7 +228,7 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         log.info("Updating category with ID: {}", id);
 
         InventoryItemCategory existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_ENTITY, id));
 
         // Update fields
         existingCategory.setName(updateDTO.getName());
@@ -227,12 +246,12 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         
         // Ensure category exists
         categoryRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+            .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_ENTITY, id));
         
         // Check if category has associated inventory items using count query
         long inventoryItemCount = categoryRepository.countInventoryItemsByCategoryId(id);
         if (inventoryItemCount > 0) {
-            throw new DeleteConstraintException("Category", id, "Category is referenced by inventory items");
+            throw new DeleteConstraintException(CATEGORY_ENTITY, id, "Category is referenced by inventory items");
         }
         
         categoryRepository.deleteById(id);
@@ -246,7 +265,7 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         return new CategoryResponseDTO(
             category.getId(),
             category.getName(),
-            category.getBranchId(),
+            category.getDepartmentId(),
             category.getCreatedAt(),
             category.getUpdatedAt()
         );
@@ -257,8 +276,8 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
      */
     private String mapSortField(String sortField) {
         return switch (sortField) {
-            case "created_at" -> "createdAt";
-            case "updated_at" -> "updatedAt";
+            case "created_at" -> CREATED_AT_FIELD;
+            case "updated_at" -> UPDATED_AT_FIELD;
             default -> sortField;
         };
     }
