@@ -93,7 +93,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
             // Apply name filter
             if (name != null && !name.trim().isEmpty()) {
                 predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("name")), 
+                    criteriaBuilder.lower(root.get("name")),
                     "%" + name.trim().toLowerCase() + "%"
                 ));
             }

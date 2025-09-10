@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -27,13 +26,20 @@ public class InventoryStockSummaryDTO {
     @JsonProperty("branch_id")
     private String branchId;
 
-    private BigDecimal quantity;
+    @JsonProperty("department_id")
+    private String departmentId;
 
-    @JsonProperty("unit_purchase_price")
-    private BigDecimal unitPurchasePrice;
+    @JsonProperty("current_quantity")
+    private BigDecimal currentQuantity;
 
-    @JsonProperty("expiration_date")
-    private LocalDate expirationDate;
+    @JsonProperty("average_unit_cost")
+    private BigDecimal averageUnitCost;
+
+    @JsonProperty("total_value")
+    private BigDecimal totalValue;
+
+    @JsonProperty("last_movement_date")
+    private LocalDateTime lastMovementDate;
 
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
@@ -41,12 +47,7 @@ public class InventoryStockSummaryDTO {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
-    // Champ anciennement exposé; laissé en commentaire pour référence
-    // /**
-    //  * Stock status (NORMAL, ALERTE_BASSE, RUPTURE)
-    //  */
-    // @JsonProperty("stock_status")
-    // private String stockStatus;
+    // Reserved for potential stock status enrichment in future.
 
     /**
      * Embedded inventory item information for list views.

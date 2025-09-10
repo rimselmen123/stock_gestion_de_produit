@@ -1,10 +1,18 @@
 package com.example.stock.mapper;
 
-import com.example.stock.dto.inventorymouvement.*;
-import com.example.stock.entity.InventoryMovement;
-import org.mapstruct.*;
-
 import java.util.List;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
+import com.example.stock.dto.inventorymouvement.InventoryMovementCreateDTO;
+import com.example.stock.dto.inventorymouvement.InventoryMovementResponseDTO;
+import com.example.stock.dto.inventorymouvement.InventoryMovementSummaryDTO;
+import com.example.stock.dto.inventorymouvement.InventoryMovementUpdateDTO;
+import com.example.stock.entity.InventoryMovement;
 
 /**
  * MapStruct mapper interface for InventoryMovement entity and DTO conversions.
@@ -36,6 +44,11 @@ public interface InventoryMovementMapper {
     @Mapping(target = "inventoryItem", ignore = true)
     @Mapping(target = "inventoryItemId", source = "inventoryItemId")
     @Mapping(target = "supplierId", source = "supplierId")
+    @Mapping(target = "branchId", source = "branchId")
+    @Mapping(target = "destinationBranchId", source = "destinationBranchId")
+    @Mapping(target = "transactionType", source = "transactionType")
+    @Mapping(target = "unitPurchasePrice", source = "unitPurchasePrice")
+    @Mapping(target = "quantity", source = "quantity")
     InventoryMovement toEntity(InventoryMovementCreateDTO createDTO);
 
     /**

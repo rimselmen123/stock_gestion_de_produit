@@ -6,17 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
- * Response DTO for Branch entity.
- * Used for API responses and data transfer.
+ * Simplified DTO for Branch entity.
+ * Used for dropdowns, selects, and reference lists.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BranchResponseDTO {
+public class BranchSummaryDTO {
 
     @JsonProperty("id")
     private String id;
@@ -33,32 +31,34 @@ public class BranchResponseDTO {
     @JsonProperty("is_active")
     private Boolean isActive;
 
-    @JsonProperty("created_at")
-    private LocalDateTime createdAt;
-
-    @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
-
-    // Compteurs optionnels pour tableaux
-    @JsonProperty("departments_count")
-    private Long departmentsCount;
-
-    @JsonProperty("movements_count")
-    private Long movementsCount;
-
-    // Helper method pour affichage
+    /**
+     * Nom complet pour affichage dans les dropdowns.
+     */
     public String getDisplayName() {
         StringBuilder display = new StringBuilder();
+        
+        // Format: "CODE - Name (Location)"
         if (code != null && !code.isBlank()) {
             display.append(code).append(" - ");
         }
         display.append(name);
+        
         if (location != null && !location.isBlank()) {
             display.append(" (").append(location).append(")");
         }
+        
+        // Indiquer si inactive
         if (Boolean.FALSE.equals(isActive)) {
             display.append(" [Inactive]");
         }
+        
         return display.toString();
+    }
+
+    /**
+     * Nom court pour affichage compact.
+     */
+    public String getShortName() {
+        return code != null && !code.isBlank() ? code : name;
     }
 }

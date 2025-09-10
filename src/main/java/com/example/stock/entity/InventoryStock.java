@@ -4,77 +4,85 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inventory_stock",
-	   uniqueConstraints = {
-		   @UniqueConstraint(name = "uk_stock_item_branch_dept_lot",
-							 columnNames = {"inventory_item_id", "branch_id", "department_id", "expiration_date"})
-	   },
-	   indexes = {
-		   @Index(name = "idx_stock_item_branch", columnList = "inventory_item_id,branch_id"),
-		   @Index(name = "idx_stock_item_branch_dept", columnList = "inventory_item_id,branch_id,department_id")
-	   })
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(
+    name = "inventory_stock",
+    uniqueConstraints = {
+        // Si tu ne gères PAS department: enlève "department_id" de la contrainte
+        @UniqueConstraint(name = "uk_stock_item_branch_dept",
+            columnNames = {"inventory_item_id","branch_id","department_id"})
+    },
+    indexes = {
+        @Index(name = "idx_stock_branch", columnList = "branch_id"),
+        @Index(name = "idx_stock_dept", columnList = "department_id"),
+        @Index(name = "idx_stock_item", columnList = "inventory_item_id"),
+        @Index(name = "idx_stock_updated_at", columnList = "updated_at"),
+        @Index(name = "idx_stock_last_mv", columnList = "last_movement_date"),
+        @Index(name = "idx_stock_qty", columnList = "current_quantity")
+    }
+)
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class InventoryStock {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
-	// Scalar FKs for low coupling
-	@Column(name = "inventory_item_id", nullable = false)
-	private String inventoryItemId;
+    @Column(name = "inventory_item_id", nullable = false, length = 64)
+    private String inventoryItemId;
 
-	@Column(name = "branch_id", nullable = false)
-	private String branchId;
+    @Column(name = "branch_id", nullable = false, length = 64)
+    private String branchId;
 
-	@Column(name = "department_id")
-	private String departmentId;
+    // Rends-le nullable = true si tu ne veux pas cette dimension
+    @Column(name = "department_id", nullable = false, length = 64)
+    private String departmentId;
 
-	// Optional per-lot tracking (null = aggregated)
-	@Column(name = "expiration_date")
-	private LocalDate expirationDate;
+    @Column(name = "current_quantity", nullable = false, precision = 18, scale = 6)
+    @Builder.Default
+    private BigDecimal currentQuantity = BigDecimal.ZERO;
 
-	@Column(name = "quantity", nullable = false, precision = 18, scale = 3)
-	private BigDecimal curentQuantity;
+    @Column(name = "average_unit_cost", precision = 18, scale = 6)
+    private BigDecimal averageUnitCost;
 
-	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+    @Column(name = "total_value", precision = 20, scale = 6)
+    private BigDecimal totalValue;
 
-	@Column(name = "updated_at", nullable = false)
-	private LocalDateTime updatedAt;
+    @Column(name = "last_movement_date")
+    private LocalDateTime lastMovementDate;
 
-	// Read-only associations
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "inventory_item_id", insertable = false, updatable = false)
-	private InventoryItem inventoryItem;
+    @Version
+    private Long version;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "branch_id", insertable = false, updatable = false)
-	private Branch branch;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "department_id", insertable = false, updatable = false)
-	private Department department;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-	// Optimistic locking
-	@Version
-	private Long version;
+    @PrePersist
+    void onCreate() {
+        var now = LocalDateTime.now();
+        createdAt = now; updatedAt = now;
+        if (currentQuantity == null) currentQuantity = BigDecimal.ZERO;
+        if (averageUnitCost == null) averageUnitCost = BigDecimal.ZERO;
+        recalcTotal();
+    }
 
-	@PrePersist
-	protected void onCreate() {
-		createdAt = LocalDateTime.now();
-		updatedAt = LocalDateTime.now();
-		if (curentQuantity == null) curentQuantity = BigDecimal.ZERO;
-	}
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        recalcTotal();
+    }
 
-	@PreUpdate
-	protected void onUpdate() {
-		updatedAt = LocalDateTime.now();
-	}
+    public void recalcTotal() {
+        if (currentQuantity != null && averageUnitCost != null) {
+            totalValue = currentQuantity.multiply(averageUnitCost);
+        }
+    }
+
+    public boolean isOutOfStock() {
+        return currentQuantity == null || currentQuantity.signum() <= 0;
+    }
 }

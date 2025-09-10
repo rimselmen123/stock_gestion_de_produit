@@ -1,6 +1,7 @@
 package com.example.stock.dto.common;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
  * @param <T> The type of data being returned
  */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiResponse<T> {
