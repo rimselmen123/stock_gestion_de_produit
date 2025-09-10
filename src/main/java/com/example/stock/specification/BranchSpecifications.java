@@ -23,7 +23,7 @@ public class BranchSpecifications {
     
     // Field name constants
     private static final String FIELD_NAME = "name";
-    private static final String FIELD_LOCATION = "location"; 
+    private static final String FIELD_LOCATION = "location";
     private static final String FIELD_CODE = "code";
     private static final String FIELD_IS_ACTIVE = "isActive";
     private static final String FIELD_CREATED_AT = "createdAt";

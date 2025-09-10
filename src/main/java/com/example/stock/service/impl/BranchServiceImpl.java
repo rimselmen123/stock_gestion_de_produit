@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -168,17 +169,17 @@ public class BranchServiceImpl implements BranchService {
         Sort sort = createSort(filterDTO.getSortField(), filterDTO.getSortDirection());
         Pageable pageable = PageRequest.of(filterDTO.getPage(), filterDTO.getPerPage(), sort);
         
-        // Find with filters
-        Page<Branch> branchPage = branchRepository.findAllWithFilters(
-            filterDTO.getSearch(), 
-            filterDTO.getName(), 
-            filterDTO.getLocation(), 
-            filterDTO.getCode(), 
-            filterDTO.getIsActive(), 
-            filterDTO.getCreatedAfter(), 
-            filterDTO.getCreatedBefore(), 
-            pageable
+        // Find with filters using Specifications to avoid PostgreSQL parameter typing issues
+        Specification<Branch> spec = com.example.stock.specification.BranchSpecifications.withFilters(
+            filterDTO.getSearch(),
+            filterDTO.getName(),
+            filterDTO.getLocation(),
+            filterDTO.getCode(),
+            filterDTO.getIsActive(),
+            filterDTO.getCreatedAfter(),
+            filterDTO.getCreatedBefore()
         );
+        Page<Branch> branchPage = branchRepository.findAll(spec, pageable);
         
         // Map to DTOs
         List<BranchResponseDTO> branches = branchPage.getContent()
