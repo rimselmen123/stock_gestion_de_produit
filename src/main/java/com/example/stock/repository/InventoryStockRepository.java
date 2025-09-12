@@ -31,6 +31,9 @@ public interface InventoryStockRepository
 
     Page<InventoryStock> findByBranchId(String branchId, Pageable pageable);
 
+        // For department deletion validation
+        boolean existsByDepartmentId(String departmentId);
+
     // -----------------------------
     // Locking for safe concurrent updates
     // -----------------------------

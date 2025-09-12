@@ -13,6 +13,8 @@ public interface InventoryMovementRepository extends JpaRepository<InventoryMove
     // -----------------------------
     boolean existsBySupplierId(String supplierId);
     boolean existsByBranchId(String branchId);
+    boolean existsByDepartmentId(String departmentId);
+    boolean existsByDestinationDepartmentId(String departmentId);
 
     // -----------------------------
     // Simple finders with pagination

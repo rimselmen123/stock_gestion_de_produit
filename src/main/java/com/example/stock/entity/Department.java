@@ -42,4 +42,17 @@ public class Department {
     // Read-only back reference: a department has many categories
     @OneToMany(mappedBy = "department")
     private java.util.List<InventoryItemCategory> categories;
+    
+    @PrePersist
+    void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    
+
 }

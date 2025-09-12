@@ -37,4 +37,7 @@ public interface InventoryItemCategoryRepository extends JpaRepository<Inventory
      */
     @Query("SELECT COUNT(i) FROM InventoryItem i WHERE i.category.id = :id")
     long countInventoryItemsByCategoryId(@Param("id") String id);
+
+    // Check if department has at least one category
+    boolean existsByDepartmentId(String departmentId);
 }
