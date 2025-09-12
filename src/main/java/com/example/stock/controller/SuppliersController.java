@@ -97,6 +97,9 @@ public class SuppliersController {
                 createdFrom, createdTo, updatedFrom, updatedTo,
                 page, perPage, sortField, sortDirection);
         
+        response.setMessage("Suppliers retrieved successfully");
+        response.setSuccess(true);
+        
         return ResponseEntity.ok(response);
     }
 

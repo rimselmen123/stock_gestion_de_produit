@@ -187,14 +187,18 @@ public class BranchServiceImpl implements BranchService {
                 .map(branchMapper::toResponseDTO)
                 .toList();
         
+        // Create pagination info
+        com.example.stock.dto.common.PaginationInfo paginationInfo = 
+            new com.example.stock.dto.common.PaginationInfo(
+                branchPage.isEmpty() ? 0 : branchPage.getNumber() + 1, // current_page (0 if no data, 1-based otherwise)
+                branchPage.getSize(), // per_page
+                branchPage.getTotalElements(), // total
+                branchPage.getTotalPages() // last_page
+            );
+        
         return PaginatedResponse.<BranchResponseDTO>builder()
                 .data(branches)
-                .totalElements(branchPage.getTotalElements())
-                .totalPages(branchPage.getTotalPages())
-                .currentPage(filterDTO.getPage())
-                .pageSize(filterDTO.getPerPage())
-                .hasNext(branchPage.hasNext())
-                .hasPrevious(branchPage.hasPrevious())
+                .pagination(paginationInfo)
                 .build();
     }
 

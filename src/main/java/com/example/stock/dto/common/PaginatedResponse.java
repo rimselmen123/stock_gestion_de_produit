@@ -25,31 +25,37 @@ public class PaginatedResponse<T> {
     /**
      * Total number of elements across all pages
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private long totalElements;
     
     /**
      * Total number of pages
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private int totalPages;
     
     /**
      * Current page number (0-based)
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private int currentPage;
     
     /**
      * Number of items per page
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private int pageSize;
     
     /**
      * Whether there is a next page
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private boolean hasNext;
     
     /**
      * Whether there is a previous page
      */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private boolean hasPrevious;
     
     /**
@@ -58,9 +64,19 @@ public class PaginatedResponse<T> {
     private PaginationInfo pagination;
     
     /**
+     * Success message
+     */
+    private String message;
+    
+    /**
+     * Indicates if the operation was successful
+     */
+    private boolean success;
+    
+    /**
      * Create a paginated response
      */
     public static <T> PaginatedResponse<T> of(List<T> data, PaginationInfo pagination) {
-        return new PaginatedResponse<>(data, 0, 0, 0, 0, false, false, pagination);
+        return new PaginatedResponse<>(data, 0, 0, 0, 0, false, false, pagination, null, false);
     }
 }

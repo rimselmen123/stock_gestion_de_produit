@@ -17,8 +17,7 @@ public interface BranchMapper {
     /**
      * Convert Branch entity to BranchResponseDTO.
      */
-    @Mapping(target = "departmentsCount", ignore = true)
-    @Mapping(target = "movementsCount", ignore = true)
+    @Mapping(target = "description", source = "location")
     BranchResponseDTO toResponseDTO(Branch branch);
 
     /**

@@ -63,9 +63,11 @@ public class UnitController {
         log.debug("Getting units with filters - search: {}, name: {}, symbol: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}",
                 search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
 
-        // Always use the advanced filters method for backward compatibility too.
         PaginatedResponse<UnitResponseDTO> response = unitService.findAllWithFilters(
                 search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
+
+        response.setMessage("Units retrieved successfully");
+        response.setSuccess(true);
 
         return ResponseEntity.ok(response);
     }
@@ -82,7 +84,8 @@ public class UnitController {
         log.debug("Getting unit with ID: {}", id);
 
         UnitResponseDTO unit = unitService.findByIdOrThrow(id);
-        ApiResponse<UnitResponseDTO> response = ApiResponse.success(unit);
+        ApiResponse<UnitResponseDTO> response = ApiResponse.success(
+            unit, "Unit retrieved successfully");
 
         return ResponseEntity.ok(response);
     }

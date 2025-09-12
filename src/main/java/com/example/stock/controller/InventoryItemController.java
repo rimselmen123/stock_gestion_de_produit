@@ -124,6 +124,9 @@ public class InventoryItemController {
                 createdFrom, createdTo, updatedFrom, updatedTo,
                 page, perPage, sortField, sortDirection);
         
+        response.setMessage("Inventory items retrieved successfully");
+        response.setSuccess(true);
+        
         return ResponseEntity.ok(response);
     }
 

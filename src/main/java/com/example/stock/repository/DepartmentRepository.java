@@ -9,11 +9,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Repository for Department with advanced filtering and integrity helpers.
  */
 public interface DepartmentRepository extends JpaRepository<Department, String>, JpaSpecificationExecutor<Department> {
+
+    // ----------- Load with relations -----------
+    @Query("SELECT d FROM Department d LEFT JOIN FETCH d.branch WHERE d.id = :id")
+    Optional<Department> findByIdWithBranch(@Param("id") String id);
 
     // ----------- Existence / Uniqueness -----------
     boolean existsByBranchId(String branchId);

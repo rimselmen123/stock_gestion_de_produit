@@ -74,8 +74,22 @@ public class InventoryMovementController {
 	);
 
 	Page<InventoryMovementResponseDTO> result = inventoryMovementService.searchMovements(filter, pageable);
-	PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, result.getTotalElements());
+	
+	// Create pagination info with proper current_page calculation
+	int currentPage = result.getContent().isEmpty() ? 0 : page;
+	int totalPages = result.getTotalPages();
+	if (totalPages == 0) totalPages = 1;
+	
+	PaginationInfo paginationInfo = new PaginationInfo();
+	paginationInfo.setCurrentPage(currentPage);
+	paginationInfo.setPerPage(perPage);
+	paginationInfo.setTotal((int) result.getTotalElements());
+	paginationInfo.setLastPage(totalPages);
+	
 	PaginatedResponse<InventoryMovementResponseDTO> response = PaginatedResponse.of(result.getContent(), paginationInfo);
+	response.setMessage("Inventory movements retrieved successfully");
+	response.setSuccess(true);
+	
 	return ResponseEntity.ok(response);
     }
 

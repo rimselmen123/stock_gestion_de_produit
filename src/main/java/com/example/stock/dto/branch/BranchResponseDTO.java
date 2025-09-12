@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Response DTO for Branch entity.
- * Used for API responses and data transfer.
+ * Simplified Response DTO for Branch entity.
+ * Contains only essential fields for frontend.
  */
 @Data
 @NoArgsConstructor
@@ -24,41 +24,12 @@ public class BranchResponseDTO {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("location")
-    private String location;
-
-    @JsonProperty("code")
-    private String code;
-
-    @JsonProperty("is_active")
-    private Boolean isActive;
+    @JsonProperty("description")
+    private String description; // Renamed from location
 
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
-
-    // Compteurs optionnels pour tableaux
-    @JsonProperty("departments_count")
-    private Long departmentsCount;
-
-    @JsonProperty("movements_count")
-    private Long movementsCount;
-
-    // Helper method pour affichage
-    public String getDisplayName() {
-        StringBuilder display = new StringBuilder();
-        if (code != null && !code.isBlank()) {
-            display.append(code).append(" - ");
-        }
-        display.append(name);
-        if (location != null && !location.isBlank()) {
-            display.append(" (").append(location).append(")");
-        }
-        if (Boolean.FALSE.equals(isActive)) {
-            display.append(" [Inactive]");
-        }
-        return display.toString();
-    }
 }

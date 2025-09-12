@@ -60,11 +60,7 @@ public interface InventoryItemService {
      * @param sortField Field to sort by
      * @param sortDirection Sort direction (asc/desc)
      * @return Paginated response with inventory items
-     * @deprecated Use {@link #findAllWithFilters(String, String, String, String, Integer, Integer, Integer, Integer, String, String, String, String, int, int, String, String)} instead
      */
-    @Deprecated(since = "1.0", forRemoval = true)
-    PaginatedResponse<InventoryItemResponseDTO> findAllWithPagination(
-            String search, int page, int perPage, String sortField, String sortDirection);
 
     /**
      * Search inventory items with advanced filtering options.

@@ -62,8 +62,18 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
                 .map(this::convertToResponseDTO)
                 .toList();
 
-        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, categoryPage.getTotalElements());
-        return PaginatedResponse.of(categoryDTOs, paginationInfo);
+        // Create pagination info with current_page = 0 if no data
+        PaginationInfo paginationInfo = new PaginationInfo(
+            categoryPage.isEmpty() ? 0 : categoryPage.getNumber() + 1, // current_page (0 if no data, 1-based otherwise)
+            categoryPage.getSize(), // per_page
+            categoryPage.getTotalElements(), // total
+            categoryPage.getTotalPages() // last_page
+        );
+        
+        return PaginatedResponse.<CategoryResponseDTO>builder()
+                .data(categoryDTOs)
+                .pagination(paginationInfo)
+                .build();
     }
 
     private Pageable createPageable(int page, int perPage, String sortField, String sortDirection) {
@@ -187,10 +197,18 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
                 .map(this::convertToResponseDTO)
                 .toList();
 
-        // Create pagination info
-        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, categoryPage.getTotalElements());
+        // Create pagination info with current_page = 0 if no data
+        PaginationInfo paginationInfo = new PaginationInfo(
+            categoryPage.isEmpty() ? 0 : categoryPage.getNumber() + 1, // current_page (0 if no data, 1-based otherwise)
+            categoryPage.getSize(), // per_page
+            categoryPage.getTotalElements(), // total
+            categoryPage.getTotalPages() // last_page
+        );
 
-        return PaginatedResponse.of(categoryDTOs, paginationInfo);
+        return PaginatedResponse.<CategoryResponseDTO>builder()
+                .data(categoryDTOs)
+                .pagination(paginationInfo)
+                .build();
     }
 
     @Override

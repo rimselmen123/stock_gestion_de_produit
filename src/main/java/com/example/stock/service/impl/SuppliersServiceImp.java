@@ -41,6 +41,9 @@ import java.util.UUID;
 @Transactional
 public class SuppliersServiceImp implements SuppliersService {
 
+    private static final String CREATED_AT_FIELD = "createdAt";
+    private static final String SUPPLIER_ENTITY = "Supplier";
+
     private final SuppliersRepository suppliersRepository;
     private final SuppliersMapper suppliersMapper;
 
@@ -72,7 +75,17 @@ public class SuppliersServiceImp implements SuppliersService {
 
         List<SupplierResponseDTO> supplierDTOs = suppliersMapper.toResponseDTOList(supplierPage.getContent());
 
-        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, supplierPage.getTotalElements());
+        // Create pagination info with proper current_page calculation
+        int currentPage = supplierDTOs.isEmpty() ? 0 : page;
+        int totalPages = supplierPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) supplierPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
+        
         return PaginatedResponse.of(supplierDTOs, paginationInfo);
     }
 
@@ -114,7 +127,17 @@ public class SuppliersServiceImp implements SuppliersService {
 
         List<SupplierResponseDTO> supplierDTOs = suppliersMapper.toResponseDTOList(supplierPage.getContent());
 
-        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, supplierPage.getTotalElements());
+        // Create pagination info with proper current_page calculation
+        int currentPage = supplierDTOs.isEmpty() ? 0 : page;
+        int totalPages = supplierPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) supplierPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
+        
         return PaginatedResponse.of(supplierDTOs, paginationInfo);
     }
 
@@ -124,7 +147,7 @@ public class SuppliersServiceImp implements SuppliersService {
         log.debug("Finding supplier by ID: {}", id);
         
         Suppliers supplier = suppliersRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Supplier", id));
+                .orElseThrow(() -> new ResourceNotFoundException(SUPPLIER_ENTITY, id));
         
         return suppliersMapper.toResponseDTO(supplier);
     }
@@ -160,7 +183,7 @@ public class SuppliersServiceImp implements SuppliersService {
         log.info("Updating supplier with ID: {}", id);
 
         Suppliers existingSupplier = suppliersRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Supplier", id));
+                .orElseThrow(() -> new ResourceNotFoundException(SUPPLIER_ENTITY, id));
 
         // Check if another supplier with same name already exists
         if (!existingSupplier.getName().equals(updateDTO.getName()) 
@@ -189,11 +212,11 @@ public class SuppliersServiceImp implements SuppliersService {
         log.info("Deleting supplier with ID: {}", id);
 
         Suppliers supplier = suppliersRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Supplier", id));
+                .orElseThrow(() -> new ResourceNotFoundException(SUPPLIER_ENTITY, id));
 
         // Check if supplier has any inventory movements
         if (supplier.getMovements() != null && !supplier.getMovements().isEmpty()) {
-            throw new DeleteConstraintException("Supplier", id, "has associated inventory movements");
+            throw new DeleteConstraintException(SUPPLIER_ENTITY, id, "has associated inventory movements");
         }
 
         suppliersRepository.delete(supplier);
@@ -209,10 +232,10 @@ public class SuppliersServiceImp implements SuppliersService {
         }
         
         return switch (sortField.toLowerCase()) {
-            case "created_at" -> "createdAt";
+            case "created_at" -> CREATED_AT_FIELD;
             case "updated_at" -> "updatedAt";
             case "name", "email", "phone", "address", "description" -> sortField;
-            default -> "createdAt";
+            default -> CREATED_AT_FIELD;
         };
     }
 

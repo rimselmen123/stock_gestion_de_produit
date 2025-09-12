@@ -30,7 +30,6 @@ public final class DepartementSpecifications {
 		return (root, query, cb) -> cb.equal(root.get(FIELD_BRANCH_ID), branchId.trim());
 	}
 
-	private static final String FIELD_NAME = "name"; // kept for future extension
 	private static final String FIELD_DESCRIPTION = "description";
 	private static final String FIELD_CREATED_AT = "createdAt";
 	private static final String FIELD_BRANCH_ID = "branchId";

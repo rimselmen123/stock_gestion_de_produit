@@ -53,9 +53,19 @@ public class InventoryStockServiceImpl implements InventoryStockService {
         List<InventoryStockResponseDTO> content = result.getContent().stream()
                 .map(inventoryStockMapper::toResponseDTO)
                 .toList();
-        PaginationInfo info = new PaginationInfo(page, size, result.getTotalElements(), result.getTotalPages());
-        return new PaginatedResponse<>(content, result.getTotalElements(), result.getTotalPages(), page - 1, size,
-                result.hasNext(), result.hasPrevious(), info);
+        
+        // Create pagination info with proper current_page calculation
+        int currentPage = content.isEmpty() ? 0 : page;
+        int totalPages = result.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo info = new PaginationInfo();
+        info.setCurrentPage(currentPage);
+        info.setPerPage(size);
+        info.setTotal((int) result.getTotalElements());
+        info.setLastPage(totalPages);
+        
+        return PaginatedResponse.of(content, info);
     }
 
     @Override
@@ -80,9 +90,19 @@ public class InventoryStockServiceImpl implements InventoryStockService {
         List<InventoryStockSummaryDTO> content = result.getContent().stream()
                 .map(inventoryStockMapper::toSummaryDTO)
                 .toList();
-        PaginationInfo info = new PaginationInfo(page, size, result.getTotalElements(), result.getTotalPages());
-        return new PaginatedResponse<>(content, result.getTotalElements(), result.getTotalPages(), page - 1, size,
-                result.hasNext(), result.hasPrevious(), info);
+        
+        // Create pagination info with proper current_page calculation
+        int currentPage = content.isEmpty() ? 0 : page;
+        int totalPages = result.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo info = new PaginationInfo();
+        info.setCurrentPage(currentPage);
+        info.setPerPage(size);
+        info.setTotal((int) result.getTotalElements());
+        info.setLastPage(totalPages);
+        
+        return PaginatedResponse.of(content, info);
     }
 
     @Override

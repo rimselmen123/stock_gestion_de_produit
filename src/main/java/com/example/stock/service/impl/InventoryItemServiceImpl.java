@@ -48,6 +48,10 @@ import java.util.UUID;
 @Transactional
 public class InventoryItemServiceImpl implements InventoryItemService {
     
+    private static final String CREATED_AT_FIELD = "createdAt";
+    private static final String UPDATED_AT_FIELD = "updatedAt";
+    private static final String INVENTORY_ITEM_ENTITY = "Inventory item";
+    
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemCategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
@@ -128,25 +132,25 @@ public class InventoryItemServiceImpl implements InventoryItemService {
             try {
                 if (createdFrom != null && !createdFrom.trim().isEmpty()) {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                        root.get("createdAt"),
+                        root.get(CREATED_AT_FIELD),
                         LocalDateTime.parse(createdFrom.trim())
                     ));
                 }
                 if (createdTo != null && !createdTo.trim().isEmpty()) {
                     predicates.add(criteriaBuilder.lessThanOrEqualTo(
-                        root.get("createdAt"),
+                        root.get(CREATED_AT_FIELD),
                         LocalDateTime.parse(createdTo.trim())
                     ));
                 }
                 if (updatedFrom != null && !updatedFrom.trim().isEmpty()) {
                     predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                        root.get("updatedAt"),
+                        root.get(UPDATED_AT_FIELD),
                         LocalDateTime.parse(updatedFrom.trim())
                     ));
                 }
                 if (updatedTo != null && !updatedTo.trim().isEmpty()) {
                     predicates.add(criteriaBuilder.lessThanOrEqualTo(
-                        root.get("updatedAt"),
+                        root.get(UPDATED_AT_FIELD),
                         LocalDateTime.parse(updatedTo.trim())
                     ));
                 }
@@ -166,13 +170,16 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                 .map(this::convertToResponseDTO)
                 .toList();
         
-        // Create pagination info
-        PaginationInfo paginationInfo = new PaginationInfo(
-                itemPage.getNumber() + 1,
-                itemPage.getSize(),
-                (int) itemPage.getTotalElements(),
-                itemPage.getTotalPages()
-        );
+        // Create pagination info with proper current_page calculation
+        int currentPage = itemDTOs.isEmpty() ? 0 : page;
+        int totalPages = itemPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) itemPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
         
         return PaginatedResponse.of(itemDTOs, paginationInfo);
     }
@@ -261,44 +268,19 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                 .map(this::convertToResponseDTO)
                 .toList();
         
-        // Create pagination metadata for the response
-        PaginationInfo paginationInfo = new PaginationInfo(
-                itemPage.getNumber() + 1,  // Convert back to 1-based page number
-                itemPage.getSize(),        // Page size (items per page)
-                (int) itemPage.getTotalElements(),  // Total number of items
-                itemPage.getTotalPages()   // Total number of pages
-        );
+        // Create pagination info with proper current_page calculation
+        int currentPage = itemDTOs.isEmpty() ? 0 : page;
+        int totalPages = itemPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(size);
+        paginationInfo.setTotal((int) itemPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
         
         // Return the paginated response with data and metadata
         return PaginatedResponse.of(itemDTOs, paginationInfo);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public PaginatedResponse<InventoryItemResponseDTO> findAllWithPagination(
-            String search, int page, int perPage, String sortField, String sortDirection) {
-        
-        log.debug("Finding inventory items with pagination - search: {}, page: {}, perPage: {}", search, page, perPage);
-        
-        // Delegate to the new method with all filter parameters set to null
-        return findAllWithFilters(
-            search, // search
-            null,   // name
-            null,   // categoryId
-            null,   // unitId
-            null,   // minThreshold
-            null,   // maxThreshold
-            null,   // minReorder
-            null,   // maxReorder
-            null,   // createdFrom
-            null,   // createdTo
-            null,   // updatedFrom
-            null,   // updatedTo
-            page,   // page
-            perPage, // perPage
-            sortField, // sortField
-            sortDirection // sortDirection
-        );
     }
     
     @Override
@@ -307,7 +289,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         log.debug("Finding inventory item by ID: {}", id);
         
         InventoryItem inventoryItem = inventoryItemRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
+            .orElseThrow(() -> new ResourceNotFoundException(INVENTORY_ITEM_ENTITY, id));
         
         return convertToResponseDTO(inventoryItem);
     }
@@ -346,7 +328,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         log.info("Updating inventory item with ID: {}", id);
         
         InventoryItem existingInventoryItem = inventoryItemRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
+            .orElseThrow(() -> new ResourceNotFoundException(INVENTORY_ITEM_ENTITY, id));
         
         // Validate foreign keys
         InventoryItemCategory category = categoryRepository.findById(updateDTO.getInventoryItemCategoryId())
@@ -375,7 +357,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         
         // Ensure inventory item exists
         inventoryItemRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Inventory item", id));
+            .orElseThrow(() -> new ResourceNotFoundException(INVENTORY_ITEM_ENTITY, id));
         
         // Check if inventory item has stock records or movement history
         // For now, we'll just delete it - in a real system you'd check for references
@@ -425,8 +407,8 @@ public class InventoryItemServiceImpl implements InventoryItemService {
      */
     private String mapSortField(String sortField) {
         return switch (sortField) {
-            case "created_at" -> "createdAt";
-            case "updated_at" -> "updatedAt";
+            case "created_at" -> CREATED_AT_FIELD;
+            case "updated_at" -> UPDATED_AT_FIELD;
             default -> sortField;
         };
     }

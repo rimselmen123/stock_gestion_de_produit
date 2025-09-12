@@ -64,9 +64,12 @@ public class DepartmentServiceImpl implements DepartmentService {
         department.setCreatedAt(LocalDateTime.now());
         department.setUpdatedAt(LocalDateTime.now());
         
-        // Save and return
+        // Save and reload with branch relation
         Department saved = departmentRepository.save(department);
-        return departmentMapper.toResponseDTO(saved);
+        Department reloaded = departmentRepository.findByIdWithBranch(saved.getId())
+            .orElseThrow(() -> new RuntimeException("Failed to reload saved department"));
+        
+        return departmentMapper.toResponseDTO(reloaded);
     }
 
     @Override

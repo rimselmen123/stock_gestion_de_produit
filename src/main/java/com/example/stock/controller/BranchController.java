@@ -141,7 +141,7 @@ public class BranchController {
 
         @GetMapping
         @Operation(summary = "Get all branches with filtering", description = "Retrieves branches with comprehensive filtering, pagination and sorting")
-        public ResponseEntity<ApiResponse<PaginatedResponse<BranchResponseDTO>>> getAllBranches(
+        public ResponseEntity<PaginatedResponse<BranchResponseDTO>> getAllBranches(
                         @Parameter(description = "Global search term") @RequestParam(required = false) String search,
                         @Parameter(description = "Filter by name") @RequestParam(required = false) String name,
                         @Parameter(description = "Filter by location") @RequestParam(required = false) String location,
@@ -149,10 +149,10 @@ public class BranchController {
                         @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean isActive,
                         @Parameter(description = "Filter by creation date (after)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdAfter,
                         @Parameter(description = "Filter by creation date (before)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdBefore,
-                        @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Items per page") @RequestParam(defaultValue = "20") int perPage,
-                        @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sortField,
-                        @Parameter(description = "Sort direction") @RequestParam(defaultValue = "asc") String sortDirection) {
+                        @Parameter(description = "Page number (1-based)") @RequestParam(defaultValue = "1") int page,
+                        @Parameter(description = "Items per page") @RequestParam(name = "per_page", defaultValue = "5") int perPage,
+                        @Parameter(description = "Sort field") @RequestParam(name = "sort_field", defaultValue = "createdAt") String sortField,
+                        @Parameter(description = "Sort direction") @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
 
                 log.debug("Fetching branches with filters - page: {}, perPage: {}", page, perPage);
 
@@ -164,22 +164,18 @@ public class BranchController {
                                 .isActive(isActive)
                                 .createdAfter(createdAfter)
                                 .createdBefore(createdBefore)
-                                .page(page)
+                                .page(page - 1) // Convert to 0-based
                                 .perPage(perPage)
                                 .sortField(sortField)
                                 .sortDirection(sortDirection)
                                 .build();
 
                 PaginatedResponse<BranchResponseDTO> branches = branchService.findAllWithFilters(filterDTO);
+                
+                branches.setMessage("Branches retrieved successfully");
+                branches.setSuccess(true);
 
-                ApiResponse<PaginatedResponse<BranchResponseDTO>> response = ApiResponse
-                                .<PaginatedResponse<BranchResponseDTO>>builder()
-                                .success(true)
-                                .message("Branches retrieved successfully")
-                                .data(branches)
-                                .build();
-
-                return ResponseEntity.ok(response);
+                return ResponseEntity.ok(branches);
         }
 
         @GetMapping("/search/name")

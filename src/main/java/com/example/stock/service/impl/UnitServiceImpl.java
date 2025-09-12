@@ -38,6 +38,9 @@ import java.util.UUID;
 @Transactional
 public class UnitServiceImpl implements UnitService {
     
+    private static final String CREATED_AT_FIELD = "createdAt";
+    private static final String UPDATED_AT_FIELD = "updatedAt";
+    
     private final UnitRepository unitRepository;
     
     @Override
@@ -76,7 +79,17 @@ public class UnitServiceImpl implements UnitService {
             .map(this::convertToResponseDTO)
             .toList();
 
-        PaginationInfo paginationInfo = PaginationInfo.of(page, perPage, unitPage.getTotalElements());
+        // Create pagination info with proper current_page calculation
+        int currentPage = unitDTOs.isEmpty() ? 0 : page;
+        int totalPages = unitPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) unitPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
+        
         return PaginatedResponse.of(unitDTOs, paginationInfo);
     }
 
@@ -211,8 +224,8 @@ public class UnitServiceImpl implements UnitService {
      */
     private String mapSortField(String sortField) {
         return switch (sortField) {
-            case "created_at" -> "createdAt";
-            case "updated_at" -> "updatedAt";
+            case "created_at" -> CREATED_AT_FIELD;
+            case "updated_at" -> UPDATED_AT_FIELD;
             default -> sortField;
         };
     }
@@ -256,21 +269,21 @@ public class UnitServiceImpl implements UnitService {
             // created range
             if (createdFrom != null && !createdFrom.isBlank()) {
                 LocalDateTime from = parseIsoDateTime(createdFrom, "createdFrom");
-                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get("createdAt"), from));
+                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get(CREATED_AT_FIELD), from));
             }
             if (createdTo != null && !createdTo.isBlank()) {
                 LocalDateTime to = parseIsoDateTime(createdTo, "createdTo");
-                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get("createdAt"), to));
+                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get(CREATED_AT_FIELD), to));
             }
 
             // updated range
             if (updatedFrom != null && !updatedFrom.isBlank()) {
                 LocalDateTime from = parseIsoDateTime(updatedFrom, "updatedFrom");
-                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get("updatedAt"), from));
+                predicates = cb.and(predicates, cb.greaterThanOrEqualTo(root.get(UPDATED_AT_FIELD), from));
             }
             if (updatedTo != null && !updatedTo.isBlank()) {
                 LocalDateTime to = parseIsoDateTime(updatedTo, "updatedTo");
-                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get("updatedAt"), to));
+                predicates = cb.and(predicates, cb.lessThanOrEqualTo(root.get(UPDATED_AT_FIELD), to));
             }
 
             return predicates;

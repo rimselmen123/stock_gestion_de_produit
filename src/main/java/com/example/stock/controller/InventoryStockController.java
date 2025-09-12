@@ -1,6 +1,5 @@
 package com.example.stock.controller;
 
-import com.example.stock.dto.common.ApiResponse;
 import com.example.stock.dto.common.PaginatedResponse;
 import com.example.stock.dto.inventorystock.InventoryStockResponseDTO;
 import com.example.stock.dto.inventorystock.InventoryStockSummaryDTO;
@@ -27,7 +26,7 @@ public class InventoryStockController {
 
     @GetMapping("/currentstock")
     @Operation(summary = "List current stock", description = "Filterable, paginated list of current stock")
-    public ResponseEntity<ApiResponse<PaginatedResponse<InventoryStockResponseDTO>>> getCurrentStock(
+    public ResponseEntity<PaginatedResponse<InventoryStockResponseDTO>> getCurrentStock(
 	    @Parameter(description = "Global search term") @RequestParam(required = false) String search,
 	    @Parameter(description = "Branch ID") @RequestParam(name = "branch_id", required = false) String branchId,
 	    @Parameter(description = "Department ID") @RequestParam(name = "department_id", required = false) String departmentId,
@@ -48,7 +47,7 @@ public class InventoryStockController {
 		qtyMax
 	);
 
-	PaginatedResponse<InventoryStockResponseDTO> data = inventoryStockService.findAllWithFilters(
+	PaginatedResponse<InventoryStockResponseDTO> response = inventoryStockService.findAllWithFilters(
 		filters,
 		page,
 		perPage,
@@ -56,12 +55,15 @@ public class InventoryStockController {
 		sortDirection
 	);
 
-	return ResponseEntity.ok(ApiResponse.success(data, "Current stock retrieved successfully"));
+	response.setMessage("Current stock retrieved successfully");
+	response.setSuccess(true);
+
+	return ResponseEntity.ok(response);
     }
 
     @GetMapping("/summary")
     @Operation(summary = "List stock summaries", description = "Filterable, paginated list of stock summaries")
-    public ResponseEntity<ApiResponse<PaginatedResponse<InventoryStockSummaryDTO>>> getStockSummary(
+    public ResponseEntity<PaginatedResponse<InventoryStockSummaryDTO>> getStockSummary(
 	    @Parameter(description = "Global search term") @RequestParam(required = false) String search,
 	    @Parameter(description = "Branch ID") @RequestParam(name = "branch_id", required = false) String branchId,
 	    @Parameter(description = "Department ID") @RequestParam(name = "department_id", required = false) String departmentId,
@@ -82,7 +84,7 @@ public class InventoryStockController {
 		qtyMax
 	);
 
-	PaginatedResponse<InventoryStockSummaryDTO> data = inventoryStockService.findAllSummariesWithFilters(
+	PaginatedResponse<InventoryStockSummaryDTO> response = inventoryStockService.findAllSummariesWithFilters(
 		filters,
 		page,
 		perPage,
@@ -90,6 +92,9 @@ public class InventoryStockController {
 		sortDirection
 	);
 
-	return ResponseEntity.ok(ApiResponse.success(data, "Stock summary retrieved successfully"));
+	response.setMessage("Stock summary retrieved successfully");
+	response.setSuccess(true);
+
+	return ResponseEntity.ok(response);
     }
 }

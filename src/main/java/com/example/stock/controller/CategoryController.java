@@ -66,15 +66,18 @@ public class CategoryController {
             @RequestParam(name = "updated_to", required = false) String updatedTo,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(name = "per_page", defaultValue = "5") int perPage,
-            @RequestParam(name = "sort_field", defaultValue = "created_at") String sortField,
+            @RequestParam(name = "sort_field", defaultValue = "createdAt") String sortField,
             @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
         
-    log.debug("Getting categories with filters - search: {}, name: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
-        search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
+        log.debug("Getting categories with filters - search: {}, name: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
+            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
         
-    PaginatedResponse<CategoryResponseDTO> response = categoryService.findAllWithFilters(
-        search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo,
-                page, perPage, sortField, sortDirection);
+        PaginatedResponse<CategoryResponseDTO> response = categoryService.findAllWithFilters(
+            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo,
+            page, perPage, sortField, sortDirection);
+        
+        response.setMessage("Categories retrieved successfully");
+        response.setSuccess(true);
         
         return ResponseEntity.ok(response);
     }
@@ -91,7 +94,8 @@ public class CategoryController {
         log.debug("Getting category with ID: {}", id);
         
         CategoryResponseDTO category = categoryService.findByIdOrThrow(id);
-        ApiResponse<CategoryResponseDTO> response = ApiResponse.success(category);
+        ApiResponse<CategoryResponseDTO> response = ApiResponse.success(
+            category, "Category retrieved successfully");
         
         return ResponseEntity.ok(response);
     }

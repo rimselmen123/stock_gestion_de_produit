@@ -74,13 +74,9 @@ class BranchControllerTest {
         responseDTO = BranchResponseDTO.builder()
                 .id("1")
                 .name("Main Branch")
-                .location("Downtown")
-                .code("MAIN")
-                .isActive(true)
+                .description("Downtown")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .departmentsCount(5L)
-                .movementsCount(100L)
                 .build();
 
         summaryDTO = BranchSummaryDTO.builder()
@@ -143,13 +139,9 @@ class BranchControllerTest {
         BranchResponseDTO updatedResponseDTO = BranchResponseDTO.builder()
                 .id("1")
                 .name("Updated Branch")
-                .location("Uptown")
-                .code("UPD")
-                .isActive(true)
+                .description("Uptown")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .departmentsCount(5L)
-                .movementsCount(100L)
                 .build();
 
         when(branchService.update(eq("1"), any(BranchUpdateDTO.class))).thenReturn(updatedResponseDTO);
