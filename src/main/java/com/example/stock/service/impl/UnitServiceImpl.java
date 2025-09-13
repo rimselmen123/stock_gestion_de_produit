@@ -8,6 +8,9 @@ import com.example.stock.dto.unit.UnitUpdateDTO;
 import com.example.stock.entity.Unit;
 import com.example.stock.exception.DeleteConstraintException;
 import com.example.stock.exception.ResourceNotFoundException;
+import com.example.stock.mapper.UnitMapper;
+import com.example.stock.repository.BranchRepository;
+import com.example.stock.repository.DepartmentRepository;
 import com.example.stock.repository.UnitRepository;
 import com.example.stock.service.UnitService;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +43,15 @@ public class UnitServiceImpl implements UnitService {
     
     private static final String CREATED_AT_FIELD = "createdAt";
     private static final String UPDATED_AT_FIELD = "updatedAt";
+    private static final String UNIT_NOT_FOUND_MSG = "Unit not found with ID: ";
+    private static final String BRANCH_NOT_FOUND_MSG = "Branch not found with ID: ";
+    private static final String DEPARTMENT_NOT_FOUND_MSG = "Department not found with ID: ";
+    private static final String SYMBOL_EXISTS_MSG = "Unit with symbol '%s' already exists";
     
     private final UnitRepository unitRepository;
+    private final BranchRepository branchRepository;
+    private final DepartmentRepository departmentRepository;
+    private final UnitMapper unitMapper;
     
     @Override
     @Transactional(readOnly = true)
@@ -49,6 +59,8 @@ public class UnitServiceImpl implements UnitService {
             String search,
             String name,
             String symbol,
+            String branchId,
+            String departmentId,
             String createdFrom,
             String createdTo,
             String updatedFrom,
@@ -58,8 +70,8 @@ public class UnitServiceImpl implements UnitService {
             String sortField,
             String sortDirection) {
 
-        log.debug("Finding units with filters - search: {}, name: {}, symbol: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
-                search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+        log.debug("Finding units with filters - search: {}, name: {}, symbol: {}, branchId: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+                search, name, symbol, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
 
         // Validate and adjust pagination parameters
         page = Math.max(1, page);
@@ -71,7 +83,7 @@ public class UnitServiceImpl implements UnitService {
 
         Pageable pageable = PageRequest.of(page - 1, perPage, sort);
 
-        Specification<Unit> spec = buildSpecification(search, name, symbol, createdFrom, createdTo, updatedFrom, updatedTo);
+        Specification<Unit> spec = buildSpecification(search, name, symbol, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo);
 
         Page<Unit> unitPage = unitRepository.findAll(spec, pageable);
 
@@ -144,50 +156,64 @@ public class UnitServiceImpl implements UnitService {
     
     @Override
     public UnitResponseDTO create(UnitCreateDTO createDTO) {
-        log.info("Creating new unit with name: {}", createDTO.getName());
+        log.info("Creating new unit with name: {} for branch: {} and department: {}", 
+                createDTO.getName(), createDTO.getBranchId(), createDTO.getDepartmentId());
+        
+        // Validate branch and department exist
+        validateBranchExists(createDTO.getBranchId());
+        validateDepartmentExists(createDTO.getDepartmentId());
         
         // Check if symbol already exists
         if (unitRepository.existsBySymbol(createDTO.getSymbol())) {
-            throw new IllegalArgumentException("Unit with symbol '" + createDTO.getSymbol() + "' already exists");
+            throw new IllegalArgumentException(String.format(SYMBOL_EXISTS_MSG, createDTO.getSymbol()));
         }
         
-        // Create entity
-        Unit unit = Unit.builder()
-            .id(UUID.randomUUID().toString())
-            .name(createDTO.getName())
-            .symbol(createDTO.getSymbol())
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
+        // Create entity using mapper
+        Unit unit = unitMapper.toEntity(createDTO);
+        unit.setId(UUID.randomUUID().toString());
+        unit.setCreatedAt(LocalDateTime.now());
+        unit.setUpdatedAt(LocalDateTime.now());
         
         Unit savedUnit = unitRepository.save(unit);
         log.info("Unit created successfully with ID: {}", savedUnit.getId());
         
-        return convertToResponseDTO(savedUnit);
+        // Fetch with relations for complete response
+        return unitMapper.toResponseDTO(
+            unitRepository.findByIdWithRelations(savedUnit.getId())
+                .orElse(savedUnit)
+        );
     }
     
     @Override
     public UnitResponseDTO update(String id, UnitUpdateDTO updateDTO) {
-        log.info("Updating unit with ID: {}", id);
+        log.info("Updating unit with ID: {} for branch: {} and department: {}", 
+                id, updateDTO.getBranchId(), updateDTO.getDepartmentId());
         
         Unit existingUnit = unitRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Unit", id));
+            .orElseThrow(() -> new ResourceNotFoundException(UNIT_NOT_FOUND_MSG + id));
+        
+        // Validate branch and department exist
+        validateBranchExists(updateDTO.getBranchId());
+        validateDepartmentExists(updateDTO.getDepartmentId());
         
         // Check if symbol is being changed and if new symbol already exists
         if (!existingUnit.getSymbol().equals(updateDTO.getSymbol()) && 
-            unitRepository.existsBySymbol(updateDTO.getSymbol())) {
-            throw new IllegalArgumentException("Unit with symbol '" + updateDTO.getSymbol() + "' already exists");
+            unitRepository.existsBySymbolAndIdNot(updateDTO.getSymbol(), id)) {
+            throw new IllegalArgumentException(String.format(SYMBOL_EXISTS_MSG, updateDTO.getSymbol()));
         }
         
-        // Update fields
-        existingUnit.setName(updateDTO.getName());
-        existingUnit.setSymbol(updateDTO.getSymbol());
+        // Update fields using mapper
+        unitMapper.updateEntityFromDTO(updateDTO, existingUnit);
         existingUnit.setUpdatedAt(LocalDateTime.now());
         
         Unit updatedUnit = unitRepository.save(existingUnit);
         log.info("Unit updated successfully with ID: {}", updatedUnit.getId());
         
-        return convertToResponseDTO(updatedUnit);
+        // Fetch with relations for complete response
+        return unitMapper.toResponseDTO(
+            unitRepository.findByIdWithRelations(updatedUnit.getId())
+                .orElse(updatedUnit)
+        );
     }
     
     @Override
@@ -195,7 +221,7 @@ public class UnitServiceImpl implements UnitService {
         log.info("Deleting unit with ID: {}", id);
         
         Unit unit = unitRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Unit", id));
+            .orElseThrow(() -> new ResourceNotFoundException(UNIT_NOT_FOUND_MSG + id));
         
         // Check if unit has associated inventory items
         if (unit.getInventoryItems() != null && !unit.getInventoryItems().isEmpty()) {
@@ -210,13 +236,7 @@ public class UnitServiceImpl implements UnitService {
      * Convert Unit entity to UnitResponseDTO.
      */
     private UnitResponseDTO convertToResponseDTO(Unit unit) {
-        return new UnitResponseDTO(
-            unit.getId(),
-            unit.getName(),
-            unit.getSymbol(),
-            unit.getCreatedAt(),
-            unit.getUpdatedAt()
-        );
+        return unitMapper.toResponseDTO(unit);
     }
     
     /**
@@ -237,6 +257,8 @@ public class UnitServiceImpl implements UnitService {
             String search,
             String name,
             String symbol,
+            String branchId,
+            String departmentId,
             String createdFrom,
             String createdTo,
             String updatedFrom,
@@ -266,6 +288,16 @@ public class UnitServiceImpl implements UnitService {
                 predicates = cb.and(predicates, cb.like(cb.lower(root.get("symbol")), like));
             }
 
+            // branch filter
+            if (branchId != null && !branchId.trim().isEmpty()) {
+                predicates = cb.and(predicates, cb.equal(root.get("branchId"), branchId.trim()));
+            }
+
+            // department filter
+            if (departmentId != null && !departmentId.trim().isEmpty()) {
+                predicates = cb.and(predicates, cb.equal(root.get("departmentId"), departmentId.trim()));
+            }
+
             // created range
             if (createdFrom != null && !createdFrom.isBlank()) {
                 LocalDateTime from = parseIsoDateTime(createdFrom, "createdFrom");
@@ -290,11 +322,55 @@ public class UnitServiceImpl implements UnitService {
         };
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnitResponseDTO> findByBranchId(String branchId) {
+        log.debug("Finding units by branch ID: {}", branchId);
+        List<Unit> units = unitRepository.findByBranchId(branchId);
+        return unitMapper.toResponseDTOList(units);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnitResponseDTO> findByDepartmentId(String departmentId) {
+        log.debug("Finding units by department ID: {}", departmentId);
+        List<Unit> units = unitRepository.findByDepartmentId(departmentId);
+        return unitMapper.toResponseDTOList(units);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnitResponseDTO> findByBranchIdAndDepartmentId(String branchId, String departmentId) {
+        log.debug("Finding units by branch ID: {} and department ID: {}", branchId, departmentId);
+        List<Unit> units = unitRepository.findByBranchIdAndDepartmentId(branchId, departmentId);
+        return unitMapper.toResponseDTOList(units);
+    }
+
     private LocalDateTime parseIsoDateTime(String value, String fieldName) {
         try {
             return LocalDateTime.parse(value);
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException("Invalid ISO-8601 date-time for " + fieldName + ": " + value);
+        }
+    }
+
+    /**
+     * Validates that a branch exists.
+     */
+    private void validateBranchExists(String branchId) {
+        if (!branchRepository.existsById(branchId)) {
+            log.error("Branch not found with ID: {}", branchId);
+            throw new ResourceNotFoundException(BRANCH_NOT_FOUND_MSG + branchId);
+        }
+    }
+
+    /**
+     * Validates that a department exists.
+     */
+    private void validateDepartmentExists(String departmentId) {
+        if (!departmentRepository.existsById(departmentId)) {
+            log.error("Department not found with ID: {}", departmentId);
+            throw new ResourceNotFoundException(DEPARTMENT_NOT_FOUND_MSG + departmentId);
         }
     }
 }

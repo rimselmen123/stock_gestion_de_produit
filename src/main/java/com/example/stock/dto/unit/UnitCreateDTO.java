@@ -35,4 +35,18 @@ public class UnitCreateDTO {
     @NotBlank(message = "Unit symbol is required")
     @Size(max = 10, message = "Unit symbol must not exceed 10 characters")
     private String symbol;
+
+    /**
+     * The branch ID that this unit belongs to.
+     * Must not be blank.
+     */
+    @NotBlank(message = "Branch ID is required")
+    private String branchId;
+
+    /**
+     * The department ID that this unit belongs to.
+     * Must not be blank.
+     */
+    @NotBlank(message = "Department ID is required")
+    private String departmentId;
 }

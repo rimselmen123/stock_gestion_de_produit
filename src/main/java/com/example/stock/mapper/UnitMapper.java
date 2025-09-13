@@ -4,10 +4,13 @@ import com.example.stock.dto.unit.UnitCreateDTO;
 import com.example.stock.dto.unit.UnitResponseDTO;
 import com.example.stock.dto.unit.UnitSummaryDTO;
 import com.example.stock.dto.unit.UnitUpdateDTO;
+import com.example.stock.entity.Branch;
+import com.example.stock.entity.Department;
 import com.example.stock.entity.Unit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
@@ -35,6 +38,8 @@ public interface UnitMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "department", ignore = true)
     @Mapping(target = "inventoryItems", ignore = true)
     Unit toEntity(UnitCreateDTO createDTO);
 
@@ -45,6 +50,8 @@ public interface UnitMapper {
      * @param unit the unit entity
      * @return UnitResponseDTO with complete unit information
      */
+    @Mapping(target = "branch", source = "branch", qualifiedByName = "toBranchInfo")
+    @Mapping(target = "department", source = "department", qualifiedByName = "toDepartmentInfo")
     UnitResponseDTO toResponseDTO(Unit unit);
 
     /**
@@ -66,6 +73,8 @@ public interface UnitMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "department", ignore = true)
     @Mapping(target = "inventoryItems", ignore = true)
     void updateEntityFromDTO(UnitUpdateDTO updateDTO, @MappingTarget Unit unit);
 
@@ -84,4 +93,40 @@ public interface UnitMapper {
      * @return list of UnitSummaryDTOs
      */
     List<UnitSummaryDTO> toSummaryDTOList(List<Unit> units);
+
+    /**
+     * Maps Branch entity to BranchInfo embedded object.
+     * 
+     * @param branch the branch entity
+     * @return BranchInfo for embedded response
+     */
+    @Named("toBranchInfo")
+    default UnitResponseDTO.BranchInfo toBranchInfo(Branch branch) {
+        if (branch == null) {
+            return null;
+        }
+        return UnitResponseDTO.BranchInfo.builder()
+                .id(branch.getId())
+                .name(branch.getName())
+                .description(branch.getLocation()) // Map location to description as per simplified response
+                .build();
+    }
+
+    /**
+     * Maps Department entity to DepartmentInfo embedded object.
+     * 
+     * @param department the department entity
+     * @return DepartmentInfo for embedded response
+     */
+    @Named("toDepartmentInfo")
+    default UnitResponseDTO.DepartmentInfo toDepartmentInfo(Department department) {
+        if (department == null) {
+            return null;
+        }
+        return UnitResponseDTO.DepartmentInfo.builder()
+                .id(department.getId())
+                .name(department.getName())
+                .description(department.getDescription())
+                .build();
+    }
 }

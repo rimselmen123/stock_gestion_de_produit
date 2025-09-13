@@ -5,6 +5,8 @@ import com.example.stock.dto.unit.UnitCreateDTO;
 import com.example.stock.dto.unit.UnitResponseDTO;
 import com.example.stock.dto.unit.UnitUpdateDTO;
 
+import java.util.List;
+
 /**
  * Service interface for Unit entity operations.
  * Defines business logic operations for Unit management.
@@ -35,6 +37,8 @@ public interface UnitService {
      * @param search       Search term applied to name or symbol (contains)
      * @param name         Filter name (contains)
      * @param symbol       Filter symbol (contains)
+     * @param branchId     Filter by branch ID
+     * @param departmentId Filter by department ID
      * @param createdFrom  Filter createdAt >= this timestamp (ISO-8601)
      * @param createdTo    Filter createdAt <= this timestamp (ISO-8601)
      * @param updatedFrom  Filter updatedAt >= this timestamp (ISO-8601)
@@ -49,6 +53,8 @@ public interface UnitService {
         String search,
         String name,
         String symbol,
+        String branchId,
+        String departmentId,
         String createdFrom,
         String createdTo,
         String updatedFrom,
@@ -66,6 +72,31 @@ public interface UnitService {
      * @throws ResourceNotFoundException if unit not found
      */
     UnitResponseDTO findByIdOrThrow(String id);
+
+    /**
+     * Find units by branch ID.
+     * 
+     * @param branchId Branch ID
+     * @return List of units in the branch
+     */
+    List<UnitResponseDTO> findByBranchId(String branchId);
+
+    /**
+     * Find units by department ID.
+     * 
+     * @param departmentId Department ID
+     * @return List of units in the department
+     */
+    List<UnitResponseDTO> findByDepartmentId(String departmentId);
+
+    /**
+     * Find units by branch ID and department ID.
+     * 
+     * @param branchId Branch ID
+     * @param departmentId Department ID
+     * @return List of units in the branch and department
+     */
+    List<UnitResponseDTO> findByBranchIdAndDepartmentId(String branchId, String departmentId);
     
     /**
      * Create a new unit.
@@ -73,6 +104,7 @@ public interface UnitService {
      * @param createDTO Unit creation data
      * @return Created unit response DTO
      * @throws IllegalArgumentException if unit data is invalid
+     * @throws ResourceNotFoundException if branch or department not found
      */
     UnitResponseDTO create(UnitCreateDTO createDTO);
     
@@ -82,7 +114,7 @@ public interface UnitService {
      * @param id Unit ID
      * @param updateDTO Unit update data
      * @return Updated unit response DTO
-     * @throws ResourceNotFoundException if unit not found
+     * @throws ResourceNotFoundException if unit, branch, or department not found
      */
     UnitResponseDTO update(String id, UnitUpdateDTO updateDTO);
     

@@ -381,11 +381,6 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         
         // Convert unit
         UnitResponseDTO unitDTO = new UnitResponseDTO(
-            inventoryItem.getUnit().getId(),
-            inventoryItem.getUnit().getName(),
-            inventoryItem.getUnit().getSymbol(),
-            inventoryItem.getUnit().getCreatedAt(),
-            inventoryItem.getUnit().getUpdatedAt()
         );
         
         return new InventoryItemResponseDTO(

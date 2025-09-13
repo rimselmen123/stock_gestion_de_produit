@@ -38,6 +38,28 @@ public class UnitResponseDTO {
     private String symbol;
 
     /**
+     * The branch ID that this unit belongs to.
+     */
+    @JsonProperty("branch_id")
+    private String branchId;
+
+    /**
+     * The department ID that this unit belongs to.
+     */
+    @JsonProperty("department_id")
+    private String departmentId;
+
+    /**
+     * Embedded branch information (nullable if not fetched).
+     */
+    private BranchInfo branch;
+
+    /**
+     * Embedded department information (nullable if not fetched).
+     */
+    private DepartmentInfo department;
+
+    /**
      * Timestamp when the unit was created.
      */
     @JsonProperty("created_at")
@@ -48,4 +70,30 @@ public class UnitResponseDTO {
      */
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Lightweight embedded branch representation.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BranchInfo {
+        private String id;
+        private String name;
+        private String description;
+    }
+
+    /**
+     * Lightweight embedded department representation.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DepartmentInfo {
+        private String id;
+        private String name;
+        private String description;
+    }
 }
