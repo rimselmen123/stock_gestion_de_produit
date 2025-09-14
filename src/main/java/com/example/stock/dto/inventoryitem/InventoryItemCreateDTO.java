@@ -32,6 +32,20 @@ public class InventoryItemCreateDTO {
     private String name;
 
     /**
+     * The branch this item belongs to.
+     */
+    @JsonProperty("branch_id")
+    @NotBlank(message = "branch_id is required")
+    private String branchId;
+
+    /**
+     * The department this item belongs to.
+     */
+    @JsonProperty("department_id")
+    @NotBlank(message = "department_id is required")
+    private String departmentId;
+
+    /**
      * The category ID this item belongs to.
      * Must exist in categories table.
      */

@@ -32,6 +32,7 @@ public interface SuppliersService {
      * All parameters are optional except pagination/sorting.
      * Date-time parameters should be ISO-8601 strings (e.g. 2025-08-14T00:00:00).
      *
+     * @param branchId     Filter by branch ID
      * @param search       Search term applied to name, email, or phone (contains)
      * @param name         Filter name (contains)
      * @param email        Filter email (contains)
@@ -49,6 +50,7 @@ public interface SuppliersService {
      * @return Paginated response with suppliers
      */
     PaginatedResponse<SupplierResponseDTO> findAllWithFilters(
+        String branchId,
         String search,
         String name,
         String email,
@@ -63,6 +65,17 @@ public interface SuppliersService {
         int perPage,
         String sortField,
         String sortDirection);
+
+    /**
+     * Find all suppliers by branch ID.
+     * 
+     * @param branchId Branch ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with suppliers in the branch
+     */
+    PaginatedResponse<SupplierResponseDTO> findByBranchId(
+            String branchId, int page, int perPage);
     
     /**
      * Find supplier by ID or throw exception if not found.
@@ -79,6 +92,8 @@ public interface SuppliersService {
      * @param createDTO Supplier creation data
      * @return Created supplier response DTO
      * @throws IllegalArgumentException if supplier data is invalid
+     * @throws ForeignKeyConstraintException if referenced branch doesn't exist
+     * @throws DuplicateResourceException if email already exists
      */
     SupplierResponseDTO create(SupplierCreateDTO createDTO);
     
@@ -89,6 +104,8 @@ public interface SuppliersService {
      * @param updateDTO Supplier update data
      * @return Updated supplier response DTO
      * @throws ResourceNotFoundException if supplier not found
+     * @throws ForeignKeyConstraintException if referenced branch doesn't exist
+     * @throws DuplicateResourceException if email already exists for another supplier
      */
     SupplierResponseDTO update(String id, SupplierUpdateDTO updateDTO);
     
@@ -100,4 +117,21 @@ public interface SuppliersService {
      * @throws DeleteConstraintException if supplier is referenced by inventory movements
      */
     void delete(String id);
+
+    /**
+     * Check if supplier exists by ID.
+     * 
+     * @param id Supplier ID
+     * @return true if supplier exists, false otherwise
+     */
+    boolean existsById(String id);
+
+    /**
+     * Check if email is already taken by another supplier.
+     * 
+     * @param email Email to check
+     * @param excludeId Supplier ID to exclude from check (for updates)
+     * @return true if email is taken, false otherwise
+     */
+    boolean isEmailTaken(String email, String excludeId);
 }

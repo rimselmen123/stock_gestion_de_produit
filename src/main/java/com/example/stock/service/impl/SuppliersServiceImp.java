@@ -92,6 +92,7 @@ public class SuppliersServiceImp implements SuppliersService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<SupplierResponseDTO> findAllWithFilters(
+            String branchId,
             String search,
             String name,
             String email,
@@ -107,8 +108,8 @@ public class SuppliersServiceImp implements SuppliersService {
             String sortField,
             String sortDirection) {
 
-        log.debug("Finding suppliers with filters - search: {}, name: {}, email: {}, phone: {}, address: {}, description: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
-                search, name, email, phone, address, description, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+        log.debug("Finding suppliers with filters - branchId: {}, search: {}, name: {}, email: {}, phone: {}, address: {}, description: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+                branchId, search, name, email, phone, address, description, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
 
         // Validate and adjust pagination parameters
         page = Math.max(1, page);
@@ -120,10 +121,41 @@ public class SuppliersServiceImp implements SuppliersService {
 
         Pageable pageable = PageRequest.of(page - 1, perPage, sort);
 
-        Specification<Suppliers> spec = buildSpecification(search, name, email, phone, address, description, 
+        Specification<Suppliers> spec = buildSpecification(branchId, search, name, email, phone, address, description, 
                 createdFrom, createdTo, updatedFrom, updatedTo);
 
         Page<Suppliers> supplierPage = suppliersRepository.findAll(spec, pageable);
+
+        List<SupplierResponseDTO> supplierDTOs = suppliersMapper.toResponseDTOList(supplierPage.getContent());
+
+        // Create pagination info with proper current_page calculation
+        int currentPage = supplierDTOs.isEmpty() ? 0 : page;
+        int totalPages = supplierPage.getTotalPages();
+        if (totalPages == 0) totalPages = 1;
+        
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(currentPage);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) supplierPage.getTotalElements());
+        paginationInfo.setLastPage(totalPages);
+        
+        return PaginatedResponse.of(supplierDTOs, paginationInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<SupplierResponseDTO> findByBranchId(
+            String branchId, int page, int perPage) {
+        
+        log.debug("Finding suppliers by branch ID: {}, page: {}, perPage: {}", branchId, page, perPage);
+
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+
+        Pageable pageable = PageRequest.of(page - 1, perPage, Sort.by(Sort.Direction.ASC, "name"));
+
+        Page<Suppliers> supplierPage = suppliersRepository.findByBranchId(branchId, pageable);
 
         List<SupplierResponseDTO> supplierDTOs = suppliersMapper.toResponseDTOList(supplierPage.getContent());
 
@@ -243,11 +275,16 @@ public class SuppliersServiceImp implements SuppliersService {
      * Builds JPA Specification for dynamic filtering.
      */
     private Specification<Suppliers> buildSpecification(
-            String search, String name, String email, String phone, String address, String description,
+            String branchId, String search, String name, String email, String phone, String address, String description,
             String createdFrom, String createdTo, String updatedFrom, String updatedTo) {
         
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Branch filter
+            if (branchId != null && !branchId.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("branchId"), branchId.trim()));
+            }
 
             // Global search across name, email, and phone
             if (search != null && !search.trim().isEmpty()) {
@@ -292,11 +329,34 @@ public class SuppliersServiceImp implements SuppliersService {
             }
 
             // Date range filters
-            addDateRangeFilter(predicates, criteriaBuilder, root, "createdAt", createdFrom, createdTo);
+            addDateRangeFilter(predicates, criteriaBuilder, root, CREATED_AT_FIELD, createdFrom, createdTo);
             addDateRangeFilter(predicates, criteriaBuilder, root, "updatedAt", updatedFrom, updatedTo);
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsById(String id) {
+        log.debug("Checking if supplier exists with ID: {}", id);
+        return suppliersRepository.existsById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isEmailTaken(String email, String excludeId) {
+        log.debug("Checking if email is taken: {}, excluding ID: {}", email, excludeId);
+        
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        
+        if (excludeId != null && !excludeId.trim().isEmpty()) {
+            return suppliersRepository.existsByEmailIgnoreCaseAndIdNot(email.trim(), excludeId.trim());
+        } else {
+            return suppliersRepository.existsByEmailIgnoreCase(email.trim());
+        }
     }
 
     /**

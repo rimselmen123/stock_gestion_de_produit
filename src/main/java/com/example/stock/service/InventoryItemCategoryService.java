@@ -5,6 +5,8 @@ import com.example.stock.dto.category.CategoryCreateDTO;
 import com.example.stock.dto.category.CategoryResponseDTO;
 import com.example.stock.dto.category.CategoryUpdateDTO;
 
+import java.util.List;
+
 /**
  * Service interface for InventoryItemCategory entity operations.
  * Defines business logic operations for Category management.
@@ -33,6 +35,7 @@ public interface InventoryItemCategoryService {
      * @param search Search term for name field
      * @param name Filter by name (contains)
      * @param branchId Filter by branch ID
+     * @param departmentId Filter by department ID
      * @param createdFrom Filter created_at from (ISO-8601)
      * @param createdTo Filter created_at to (ISO-8601)
      * @param updatedFrom Filter updated_at from (ISO-8601)
@@ -44,7 +47,7 @@ public interface InventoryItemCategoryService {
      * @return Paginated response with categories
      */
     PaginatedResponse<CategoryResponseDTO> findAllWithFilters(
-        String search, String name, String branchId,
+        String search, String name, String branchId, String departmentId,
         String createdFrom, String createdTo,
         String updatedFrom, String updatedTo,
         int page, int perPage, String sortField, String sortDirection);
@@ -85,4 +88,29 @@ public interface InventoryItemCategoryService {
      * @throws DeleteConstraintException if category is referenced by inventory items
      */
     void delete(String id);
+
+    /**
+     * Find categories by branch ID.
+     * 
+     * @param branchId Branch ID
+     * @return List of categories in the branch
+     */
+    List<CategoryResponseDTO> findByBranchId(String branchId);
+
+    /**
+     * Find categories by department ID.
+     * 
+     * @param departmentId Department ID
+     * @return List of categories in the department
+     */
+    List<CategoryResponseDTO> findByDepartmentId(String departmentId);
+
+    /**
+     * Find categories by branch ID and department ID.
+     * 
+     * @param branchId Branch ID
+     * @param departmentId Department ID
+     * @return List of categories in the branch and department
+     */
+    List<CategoryResponseDTO> findByBranchIdAndDepartmentId(String branchId, String departmentId);
 }

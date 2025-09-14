@@ -59,14 +59,15 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<InventoryItemResponseDTO> findAllWithFilters(
-            String search, String name, String categoryId, String unitId,
+            String search, String name, String branchId, String departmentId,
+            String categoryId, String unitId,
             Integer minThreshold, Integer maxThreshold, Integer minReorder, Integer maxReorder,
             String createdFrom, String createdTo, String updatedFrom, String updatedTo,
             int page, int perPage, String sortField, String sortDirection) {
         
-        log.debug("Finding inventory items with filters - search: {}, name: {}, categoryId: {}, unitId: {}, " +
-                "minThreshold: {}, maxThreshold: {}, minReorder: {}, maxReorder: {}",
-                search, name, categoryId, unitId, minThreshold, maxThreshold, minReorder, maxReorder);
+        log.debug("Finding inventory items with filters - search: {}, name: {}, branchId: {}, departmentId: {}, " +
+                "categoryId: {}, unitId: {}, minThreshold: {}, maxThreshold: {}, minReorder: {}, maxReorder: {}",
+                search, name, branchId, departmentId, categoryId, unitId, minThreshold, maxThreshold, minReorder, maxReorder);
         
         // Validate and adjust pagination parameters
         page = Math.max(1, page);
@@ -100,6 +101,16 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                     criteriaBuilder.lower(root.get("name")),
                     "%" + name.trim().toLowerCase() + "%"
                 ));
+            }
+            
+            // Apply branch filter
+            if (branchId != null && !branchId.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("branchId"), branchId.trim()));
+            }
+            
+            // Apply department filter
+            if (departmentId != null && !departmentId.trim().isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("departmentId"), departmentId.trim()));
             }
             
             // Apply category filter
@@ -204,11 +215,12 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<InventoryItemResponseDTO> searchItems(
-            String name, String unit, String unitName, String category, String categoryName,
+            String name, String branchId, String departmentId,
+            String unit, String unitName, String category, String categoryName,
             int page, int size, String sortBy, String sortDirection) {
         
-        log.debug("Searching inventory items with filters - name: {}, unit: {}, unitName: {}, category: {}, categoryName: {}",
-                name, unit, unitName, category, categoryName);
+        log.debug("Searching inventory items with filters - name: {}, branchId: {}, departmentId: {}, unit: {}, unitName: {}, category: {}, categoryName: {}",
+                name, branchId, departmentId, unit, unitName, category, categoryName);
         
         // Ensure page number is at least 1
         page = Math.max(1, page);
@@ -242,6 +254,12 @@ public class InventoryItemServiceImpl implements InventoryItemService {
             // Add each filter condition if the parameter is provided
             if (StringUtils.hasText(name)) {
                 predicates.add(InventoryItemSpecifications.withName(name).toPredicate(root, query, criteriaBuilder));
+            }
+            if (StringUtils.hasText(branchId)) {
+                predicates.add(InventoryItemSpecifications.withBranchId(branchId).toPredicate(root, query, criteriaBuilder));
+            }
+            if (StringUtils.hasText(departmentId)) {
+                predicates.add(InventoryItemSpecifications.withDepartmentId(departmentId).toPredicate(root, query, criteriaBuilder));
             }
             if (StringUtils.hasText(unit)) {
                 predicates.add(InventoryItemSpecifications.withUnitId(unit).toPredicate(root, query, criteriaBuilder));
@@ -309,6 +327,8 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         InventoryItem inventoryItem = InventoryItem.builder()
             .id(UUID.randomUUID().toString())
             .name(createDTO.getName())
+            .branchId(createDTO.getBranchId())
+            .departmentId(createDTO.getDepartmentId())
             .thresholdQuantity(createDTO.getThresholdQuantity())
             .reorderQuantity(createDTO.getReorderQuantity())
             .category(category)
@@ -339,6 +359,8 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         
         // Update fields
         existingInventoryItem.setName(updateDTO.getName());
+        existingInventoryItem.setBranchId(updateDTO.getBranchId());
+        existingInventoryItem.setDepartmentId(updateDTO.getDepartmentId());
         existingInventoryItem.setThresholdQuantity(updateDTO.getThresholdQuantity());
         existingInventoryItem.setReorderQuantity(updateDTO.getReorderQuantity());
         existingInventoryItem.setCategory(category);
@@ -374,6 +396,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         CategoryResponseDTO categoryDTO = new CategoryResponseDTO(
             inventoryItem.getCategory().getId(),
             inventoryItem.getCategory().getName(),
+            inventoryItem.getCategory().getBranchId(),
             inventoryItem.getCategory().getDepartmentId(),
             inventoryItem.getCategory().getCreatedAt(),
             inventoryItem.getCategory().getUpdatedAt()
@@ -381,20 +404,127 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         
         // Convert unit
         UnitResponseDTO unitDTO = new UnitResponseDTO(
+            inventoryItem.getUnit().getId(),
+            inventoryItem.getUnit().getName(),
+            inventoryItem.getUnit().getSymbol(),
+            null, // branchId - set via setter if needed
+            null, // departmentId - set via setter if needed
+            null, // branch - set via setter if needed
+            null, // department - set via setter if needed
+            inventoryItem.getUnit().getCreatedAt(),
+            inventoryItem.getUnit().getUpdatedAt()
         );
         
         return new InventoryItemResponseDTO(
             inventoryItem.getId(),                    // id
             inventoryItem.getName(),                  // name
+            inventoryItem.getBranchId(),              // branchId
+            inventoryItem.getDepartmentId(),          // departmentId
             inventoryItem.getCategory().getId(),      // inventoryItemCategoryId
             inventoryItem.getUnit().getId(),          // unitId
             inventoryItem.getThresholdQuantity(),     // thresholdQuantity
             inventoryItem.getReorderQuantity(),       // reorderQuantity
             inventoryItem.getCreatedAt(),             // createdAt
             inventoryItem.getUpdatedAt(),             // updatedAt
-            categoryDTO,                                   // category
-            unitDTO                                        // unit
+            categoryDTO,                              // category
+            unitDTO                                   // unit
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<InventoryItemResponseDTO> findByBranchId(
+            String branchId, int page, int perPage) {
+        
+        log.debug("Finding inventory items by branch ID: {}", branchId);
+        
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+        
+        // Create pageable (Spring uses 0-based indexing)
+        Pageable pageable = PageRequest.of(page - 1, perPage, Sort.by("name"));
+        
+        // Find items by branch ID
+        Page<InventoryItem> itemPage = inventoryItemRepository.findByBranchId(branchId, pageable);
+        
+        // Convert to DTOs
+        List<InventoryItemResponseDTO> itemDTOs = itemPage.getContent().stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+        
+        // Create pagination info
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(itemDTOs.isEmpty() ? 0 : page);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) itemPage.getTotalElements());
+        paginationInfo.setLastPage(itemPage.getTotalPages() == 0 ? 1 : itemPage.getTotalPages());
+        
+        return PaginatedResponse.of(itemDTOs, paginationInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<InventoryItemResponseDTO> findByDepartmentId(
+            String departmentId, int page, int perPage) {
+        
+        log.debug("Finding inventory items by department ID: {}", departmentId);
+        
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+        
+        // Create pageable (Spring uses 0-based indexing)
+        Pageable pageable = PageRequest.of(page - 1, perPage, Sort.by("name"));
+        
+        // Find items by department ID
+        Page<InventoryItem> itemPage = inventoryItemRepository.findByDepartmentId(departmentId, pageable);
+        
+        // Convert to DTOs
+        List<InventoryItemResponseDTO> itemDTOs = itemPage.getContent().stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+        
+        // Create pagination info
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(itemDTOs.isEmpty() ? 0 : page);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) itemPage.getTotalElements());
+        paginationInfo.setLastPage(itemPage.getTotalPages() == 0 ? 1 : itemPage.getTotalPages());
+        
+        return PaginatedResponse.of(itemDTOs, paginationInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<InventoryItemResponseDTO> findByBranchIdAndDepartmentId(
+            String branchId, String departmentId, int page, int perPage) {
+        
+        log.debug("Finding inventory items by branch ID: {} and department ID: {}", branchId, departmentId);
+        
+        // Validate and adjust pagination parameters
+        page = Math.max(1, page);
+        perPage = Math.min(Math.max(1, perPage), 100);
+        
+        // Create pageable (Spring uses 0-based indexing)
+        Pageable pageable = PageRequest.of(page - 1, perPage, Sort.by("name"));
+        
+        // Find items by branch and department ID
+        Page<InventoryItem> itemPage = inventoryItemRepository.findByBranchIdAndDepartmentId(branchId, departmentId, pageable);
+        
+        // Convert to DTOs
+        List<InventoryItemResponseDTO> itemDTOs = itemPage.getContent().stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+        
+        // Create pagination info
+        PaginationInfo paginationInfo = new PaginationInfo();
+        paginationInfo.setCurrentPage(itemDTOs.isEmpty() ? 0 : page);
+        paginationInfo.setPerPage(perPage);
+        paginationInfo.setTotal((int) itemPage.getTotalElements());
+        paginationInfo.setLastPage(itemPage.getTotalPages() == 0 ? 1 : itemPage.getTotalPages());
+        
+        return PaginatedResponse.of(itemDTOs, paginationInfo);
     }
     
     /**

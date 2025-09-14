@@ -35,6 +35,18 @@ public class InventoryItemResponseDTO {
     private String name;
 
     /**
+     * The branch ID this item belongs to.
+     */
+    @JsonProperty("branch_id")
+    private String branchId;
+
+    /**
+     * The department ID this item belongs to.
+     */
+    @JsonProperty("department_id")
+    private String departmentId;
+
+    /**
      * The category ID this item belongs to.
      */
     @JsonProperty("inventory_item_category_id")

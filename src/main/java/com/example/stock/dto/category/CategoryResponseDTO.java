@@ -33,6 +33,12 @@ public class CategoryResponseDTO {
     private String name;
 
     /**
+     * The branch ID this category belongs to.
+     */
+    @JsonProperty("branch_id")
+    private String branchId;
+
+    /**
      * The department ID this category belongs to.
      */
     @JsonProperty("department_id")

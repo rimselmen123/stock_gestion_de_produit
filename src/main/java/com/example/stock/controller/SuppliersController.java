@@ -41,6 +41,9 @@ public class SuppliersController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Successfully retrieved suppliers")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid parameters provided")
     public ResponseEntity<PaginatedResponse<SupplierResponseDTO>> getAllSuppliers(
+            @Parameter(description = "Filter by branch ID")
+            @RequestParam(name = "branch_id", required = false) String branchId,
+            
             @Parameter(description = "Search term for name, email, and phone fields")
             @RequestParam(required = false) String search,
             
@@ -85,15 +88,15 @@ public class SuppliersController {
         
         log.debug("""
                 Getting suppliers with filters - 
-                search: {}, name: {}, email: {}, phone: {}, address: {}, description: {},
+                branchId: {}, search: {}, name: {}, email: {}, phone: {}, address: {}, description: {},
                 createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {},
                 page: {}, perPage: {}, sortField: {}, sortDirection: {}""",
-                search, name, email, phone, address, description,
+                branchId, search, name, email, phone, address, description,
                 createdFrom, createdTo, updatedFrom, updatedTo,
                 page, perPage, sortField, sortDirection);
         
         PaginatedResponse<SupplierResponseDTO> response = suppliersService.findAllWithFilters(
-                search, name, email, phone, address, description,
+                branchId, search, name, email, phone, address, description,
                 createdFrom, createdTo, updatedFrom, updatedTo,
                 page, perPage, sortField, sortDirection);
         

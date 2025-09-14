@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -148,10 +149,10 @@ public class UnitServiceImpl implements UnitService {
     public UnitResponseDTO findByIdOrThrow(String id) {
         log.debug("Finding unit by ID: {}", id);
         
-        Unit unit = unitRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Unit", id));
+        Unit unit = unitRepository.findByIdWithRelations(id)
+            .orElseThrow(() -> new ResourceNotFoundException(UNIT_NOT_FOUND_MSG + id));
         
-        return convertToResponseDTO(unit);
+        return unitMapper.toResponseDTO(unit);
     }
     
     @Override
@@ -177,11 +178,18 @@ public class UnitServiceImpl implements UnitService {
         Unit savedUnit = unitRepository.save(unit);
         log.info("Unit created successfully with ID: {}", savedUnit.getId());
         
-        // Fetch with relations for complete response
-        return unitMapper.toResponseDTO(
-            unitRepository.findByIdWithRelations(savedUnit.getId())
-                .orElse(savedUnit)
-        );
+        // Try to load with relations, with debug logging
+        Optional<Unit> unitWithRelationsOpt = unitRepository.findByIdWithRelations(savedUnit.getId());
+        if (unitWithRelationsOpt.isPresent()) {
+            Unit unitWithRelations = unitWithRelationsOpt.get();
+            log.debug("Loaded unit with relations - Branch: {}, Department: {}", 
+                    unitWithRelations.getBranch() != null ? unitWithRelations.getBranch().getName() : "NULL",
+                    unitWithRelations.getDepartment() != null ? unitWithRelations.getDepartment().getName() : "NULL");
+            return unitMapper.toResponseDTO(unitWithRelations);
+        } else {
+            log.warn("Could not load unit with relations, falling back to basic unit");
+            return unitMapper.toResponseDTO(savedUnit);
+        }
     }
     
     @Override
@@ -209,11 +217,11 @@ public class UnitServiceImpl implements UnitService {
         Unit updatedUnit = unitRepository.save(existingUnit);
         log.info("Unit updated successfully with ID: {}", updatedUnit.getId());
         
-        // Fetch with relations for complete response
-        return unitMapper.toResponseDTO(
-            unitRepository.findByIdWithRelations(updatedUnit.getId())
-                .orElse(updatedUnit)
-        );
+        // Explicitly load the unit with relations to ensure they are populated
+        Unit unitWithRelations = unitRepository.findByIdWithRelations(updatedUnit.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(UNIT_NOT_FOUND_MSG + updatedUnit.getId()));
+        
+        return unitMapper.toResponseDTO(unitWithRelations);
     }
     
     @Override

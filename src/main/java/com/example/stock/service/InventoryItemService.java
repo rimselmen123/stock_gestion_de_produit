@@ -13,22 +13,14 @@ import com.example.stock.dto.inventoryitem.InventoryItemUpdateDTO;
  * @since 1.0
  */
 public interface InventoryItemService {
-    
-    /**
-     * Find all inventory items with pagination, search, and sorting.
-     * 
-     * @param search Search term for name field
-     * @param page Page number (1-based)
-     * @param perPage Items per page
-     * @param sortField Field to sort by
-     * @param sortDirection Sort direction (asc/desc)
-     * @return Paginated response with inventory items
-     */
+
     /**
      * Find all inventory items with advanced filtering and pagination.
      *
      * @param search Search term for name field
      * @param name Filter by name (contains)
+     * @param branchId Filter by branch ID
+     * @param departmentId Filter by department ID
      * @param categoryId Filter by category ID
      * @param unitId Filter by unit ID
      * @param minThreshold Filter by minimum threshold quantity
@@ -46,26 +38,18 @@ public interface InventoryItemService {
      * @return Paginated response with inventory items
      */
     PaginatedResponse<InventoryItemResponseDTO> findAllWithFilters(
-            String search, String name, String categoryId, String unitId,
+            String search, String name, String branchId, String departmentId,
+            String categoryId, String unitId,
             Integer minThreshold, Integer maxThreshold, Integer minReorder, Integer maxReorder,
             String createdFrom, String createdTo, String updatedFrom, String updatedTo,
             int page, int perPage, String sortField, String sortDirection);
 
     /**
-     * Find all inventory items with pagination, search, and sorting.
-     *
-     * @param search Search term for name field
-     * @param page Page number (1-based)
-     * @param perPage Items per page
-     * @param sortField Field to sort by
-     * @param sortDirection Sort direction (asc/desc)
-     * @return Paginated response with inventory items
-     */
-
-    /**
      * Search inventory items with advanced filtering options.
      * 
      * @param name Optional item name (partial match, case-insensitive)
+     * @param branchId Optional branch ID (exact match)
+     * @param departmentId Optional department ID (exact match)  
      * @param unit Optional unit ID (exact match)
      * @param unitName Optional unit name (partial match, case-insensitive)
      * @param category Optional category ID (exact match)
@@ -77,16 +61,44 @@ public interface InventoryItemService {
      * @return Paginated response with filtered items
      */
     PaginatedResponse<InventoryItemResponseDTO> searchItems(
-            String name,
-            String unit,
-            String unitName,
-            String category,
-            String categoryName,
-            int page,
-            int size,
-            String sortBy,
-            String sortDirection
-    );
+            String name, String branchId, String departmentId,
+            String unit, String unitName,
+            String category, String categoryName,
+            int page, int size, String sortBy, String sortDirection);
+
+    /**
+     * Find all inventory items by branch ID.
+     * 
+     * @param branchId Branch ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the branch
+     */
+    PaginatedResponse<InventoryItemResponseDTO> findByBranchId(
+            String branchId, int page, int perPage);
+
+    /**
+     * Find all inventory items by department ID.
+     * 
+     * @param departmentId Department ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the department
+     */
+    PaginatedResponse<InventoryItemResponseDTO> findByDepartmentId(
+            String departmentId, int page, int perPage);
+
+    /**
+     * Find all inventory items by branch and department ID.
+     * 
+     * @param branchId Branch ID
+     * @param departmentId Department ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the branch and department
+     */
+    PaginatedResponse<InventoryItemResponseDTO> findByBranchIdAndDepartmentId(
+            String branchId, String departmentId, int page, int perPage);
     
     /**
      * Find inventory item by ID or throw exception if not found.

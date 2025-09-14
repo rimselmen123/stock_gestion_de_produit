@@ -37,6 +37,34 @@ public class InventoryItemSpecifications {
     }
 
     /**
+     * Creates a specification to filter items by branch ID (exact match).
+     * 
+     * @param branchId The ID of the branch to filter by
+     * @return Specification for filtering by branch ID
+     */
+    public static Specification<InventoryItem> withBranchId(String branchId) {
+        return (root, query, criteriaBuilder) -> 
+            !StringUtils.hasText(branchId) ? 
+                criteriaBuilder.conjunction() : 
+                // Create an equality predicate for the branch ID
+                criteriaBuilder.equal(root.get("branchId"), branchId.trim());
+    }
+
+    /**
+     * Creates a specification to filter items by department ID (exact match).
+     * 
+     * @param departmentId The ID of the department to filter by
+     * @return Specification for filtering by department ID
+     */
+    public static Specification<InventoryItem> withDepartmentId(String departmentId) {
+        return (root, query, criteriaBuilder) -> 
+            !StringUtils.hasText(departmentId) ? 
+                criteriaBuilder.conjunction() : 
+                // Create an equality predicate for the department ID
+                criteriaBuilder.equal(root.get("departmentId"), departmentId.trim());
+    }
+
+    /**
      * Creates a specification to filter items by unit ID (exact match).
      * 
      * @param unitId The ID of the unit to filter by

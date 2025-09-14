@@ -30,6 +30,13 @@ public class CategoryCreateDTO {
     private String name;
 
     /**
+     * The branch this category belongs to.
+     */
+    @JsonProperty("branch_id")
+    @NotBlank(message = "branch_id is required")
+    private String branchId;
+
+    /**
      * The department this category belongs to.
      */
     @JsonProperty("department_id")

@@ -46,6 +46,8 @@ public class InventoryItemController {
      * 
      * @param search Search term for name field
      * @param name Filter by name (contains)
+     * @param branchId Filter by branch ID
+     * @param departmentId Filter by department ID
      * @param categoryId Filter by category ID
      * @param unitId Filter by unit ID
      * @param minThreshold Filter by minimum threshold quantity
@@ -72,6 +74,12 @@ public class InventoryItemController {
             
             @Parameter(description = "Filter by name (contains)")
             @RequestParam(required = false) String name,
+            
+            @Parameter(description = "Filter by branch ID")
+            @RequestParam(name = "branch_id", required = false) String branchId,
+            
+            @Parameter(description = "Filter by department ID")
+            @RequestParam(name = "department_id", required = false) String departmentId,
             
             @Parameter(description = "Filter by category ID")
             @RequestParam(name = "category_id", required = false) String categoryId,
@@ -111,15 +119,15 @@ public class InventoryItemController {
         
         log.debug("""
                 Getting inventory items with filters - 
-                search: {}, name: {}, categoryId: {}, unitId: {}, 
+                search: {}, name: {}, branchId: {}, departmentId: {}, categoryId: {}, unitId: {}, 
                 minThreshold: {}, maxThreshold: {}, minReorder: {}, maxReorder: {},
                 createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {},
                 page: {}, perPage: {}, sortField: {}, sortDirection: {}""",
-                search, name, categoryId, unitId, minThreshold, maxThreshold, minReorder, maxReorder,
+                search, name, branchId, departmentId, categoryId, unitId, minThreshold, maxThreshold, minReorder, maxReorder,
                 createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
         
         PaginatedResponse<InventoryItemResponseDTO> response = inventoryItemService.findAllWithFilters(
-                search, name, categoryId, unitId, 
+                search, name, branchId, departmentId, categoryId, unitId, 
                 minThreshold, maxThreshold, minReorder, maxReorder,
                 createdFrom, createdTo, updatedFrom, updatedTo,
                 page, perPage, sortField, sortDirection);
@@ -207,5 +215,95 @@ public class InventoryItemController {
         
         inventoryItemService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Get all inventory items in a specific branch.
+     * 
+     * @param branchId Branch ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the branch
+     */
+    @GetMapping("/branch/{branchId}")
+    @Operation(summary = "Get all inventory items in a specific branch")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved inventory items for branch")
+    @ApiResponse(responseCode = "400", description = "Invalid parameters provided")
+    public ResponseEntity<PaginatedResponse<InventoryItemResponseDTO>> getInventoryItemsByBranch(
+            @Parameter(description = "Branch ID") @PathVariable String branchId,
+            @Parameter(description = "Page number (1-based)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "10") int perPage) {
+        
+        log.debug("Getting inventory items for branch ID: {}, page: {}, perPage: {}", branchId, page, perPage);
+        
+        PaginatedResponse<InventoryItemResponseDTO> response = 
+                inventoryItemService.findByBranchId(branchId, page, perPage);
+        
+        response.setMessage("Inventory items for branch retrieved successfully");
+        response.setSuccess(true);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all inventory items in a specific department.
+     * 
+     * @param departmentId Department ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the department
+     */
+    @GetMapping("/department/{departmentId}")
+    @Operation(summary = "Get all inventory items in a specific department")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved inventory items for department")
+    @ApiResponse(responseCode = "400", description = "Invalid parameters provided")
+    public ResponseEntity<PaginatedResponse<InventoryItemResponseDTO>> getInventoryItemsByDepartment(
+            @Parameter(description = "Department ID") @PathVariable String departmentId,
+            @Parameter(description = "Page number (1-based)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "10") int perPage) {
+        
+        log.debug("Getting inventory items for department ID: {}, page: {}, perPage: {}", departmentId, page, perPage);
+        
+        PaginatedResponse<InventoryItemResponseDTO> response = 
+                inventoryItemService.findByDepartmentId(departmentId, page, perPage);
+        
+        response.setMessage("Inventory items for department retrieved successfully");
+        response.setSuccess(true);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get all inventory items in a specific branch and department.
+     * 
+     * @param branchId Branch ID
+     * @param departmentId Department ID
+     * @param page Page number (1-based)
+     * @param perPage Items per page
+     * @return Paginated response with inventory items in the branch and department
+     */
+    @GetMapping("/branch/{branchId}/department/{departmentId}")
+    @Operation(summary = "Get all inventory items in a specific branch and department")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved inventory items for branch and department")
+    @ApiResponse(responseCode = "400", description = "Invalid parameters provided")
+    public ResponseEntity<PaginatedResponse<InventoryItemResponseDTO>> getInventoryItemsByBranchAndDepartment(
+            @Parameter(description = "Branch ID") @PathVariable String branchId,
+            @Parameter(description = "Department ID") @PathVariable String departmentId,
+            @Parameter(description = "Page number (1-based)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "10") int perPage) {
+        
+        log.debug("Getting inventory items for branch ID: {} and department ID: {}, page: {}, perPage: {}", 
+                branchId, departmentId, page, perPage);
+        
+        PaginatedResponse<InventoryItemResponseDTO> response = 
+                inventoryItemService.findByBranchIdAndDepartmentId(branchId, departmentId, page, perPage);
+        
+        response.setMessage("Inventory items for branch and department retrieved successfully");
+        response.setSuccess(true);
+        
+        return ResponseEntity.ok(response);
     }
 }

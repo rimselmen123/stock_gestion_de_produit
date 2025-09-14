@@ -46,16 +46,16 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<CategoryResponseDTO> findAllWithFilters(
-            String search, String name, String departmentId,
+            String search, String name, String branchId, String departmentId,
             String createdFrom, String createdTo,
             String updatedFrom, String updatedTo,
             int page, int perPage, String sortField, String sortDirection) {
 
-        log.debug("Finding categories with filters - search: {}, name: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
-            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
+        log.debug("Finding categories with filters - search: {}, name: {}, branchId: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}",
+            search, name, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage);
 
         Pageable pageable = createPageable(page, perPage, sortField, sortDirection);
-        Specification<InventoryItemCategory> spec = buildFilterSpecification(search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo);
+        Specification<InventoryItemCategory> spec = buildFilterSpecification(search, name, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo);
         
         Page<InventoryItemCategory> categoryPage = categoryRepository.findAll(spec, pageable);
         List<CategoryResponseDTO> categoryDTOs = categoryPage.getContent().stream()
@@ -87,7 +87,7 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
     }
 
     private Specification<InventoryItemCategory> buildFilterSpecification(
-            String search, String name, String departmentId,
+            String search, String name, String branchId, String departmentId,
             String createdFrom, String createdTo,
             String updatedFrom, String updatedTo) {
         
@@ -96,6 +96,7 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
 
             addSearchFilter(predicates, root, criteriaBuilder, search);
             addNameFilter(predicates, root, criteriaBuilder, name);
+            addBranchFilter(predicates, root, criteriaBuilder, branchId);
             addDepartmentFilter(predicates, root, criteriaBuilder, departmentId);
             addDateRangeFilters(predicates, root, criteriaBuilder, createdFrom, createdTo, updatedFrom, updatedTo);
 
@@ -123,6 +124,15 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
             String namePattern = "%" + name.toLowerCase() + "%";
             predicates.add(criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("name")), namePattern));
+        }
+    }
+
+    private void addBranchFilter(java.util.List<jakarta.persistence.criteria.Predicate> predicates, 
+                                jakarta.persistence.criteria.Root<InventoryItemCategory> root, 
+                                jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder, 
+                                String branchId) {
+        if (branchId != null && !branchId.trim().isEmpty()) {
+            predicates.add(criteriaBuilder.equal(root.get("branchId"), branchId));
         }
     }
 
@@ -227,13 +237,14 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         log.info("Creating new category with name: {}", createDTO.getName());
 
         // Create entity
-    InventoryItemCategory category = InventoryItemCategory.builder()
-        .id(UUID.randomUUID().toString())
-        .name(createDTO.getName())
-        .departmentId(createDTO.getDepartmentId()) // set owning department
-        .createdAt(LocalDateTime.now())
-        .updatedAt(LocalDateTime.now())
-        .build();
+        InventoryItemCategory category = InventoryItemCategory.builder()
+            .id(UUID.randomUUID().toString())
+            .name(createDTO.getName())
+            .branchId(createDTO.getBranchId())
+            .departmentId(createDTO.getDepartmentId())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
 
         InventoryItemCategory savedCategory = categoryRepository.save(category);
         log.info("Category created successfully with ID: {}", savedCategory.getId());
@@ -250,6 +261,8 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
 
         // Update fields
         existingCategory.setName(updateDTO.getName());
+        existingCategory.setBranchId(updateDTO.getBranchId());
+        existingCategory.setDepartmentId(updateDTO.getDepartmentId());
         existingCategory.setUpdatedAt(LocalDateTime.now());
 
         InventoryItemCategory updatedCategory = categoryRepository.save(existingCategory);
@@ -283,10 +296,41 @@ public class InventoryItemCategoryServiceImpl implements InventoryItemCategorySe
         return new CategoryResponseDTO(
             category.getId(),
             category.getName(),
+            category.getBranchId(),
             category.getDepartmentId(),
             category.getCreatedAt(),
             category.getUpdatedAt()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDTO> findByBranchId(String branchId) {
+        log.debug("Finding categories by branch ID: {}", branchId);
+        List<InventoryItemCategory> categories = categoryRepository.findByBranchId(branchId);
+        return categories.stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDTO> findByDepartmentId(String departmentId) {
+        log.debug("Finding categories by department ID: {}", departmentId);
+        List<InventoryItemCategory> categories = categoryRepository.findByDepartmentId(departmentId);
+        return categories.stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDTO> findByBranchIdAndDepartmentId(String branchId, String departmentId) {
+        log.debug("Finding categories by branch ID: {} and department ID: {}", branchId, departmentId);
+        List<InventoryItemCategory> categories = categoryRepository.findByBranchIdAndDepartmentId(branchId, departmentId);
+        return categories.stream()
+                .map(this::convertToResponseDTO)
+                .toList();
     }
     
     /**

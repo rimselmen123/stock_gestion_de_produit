@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * REST Controller for Category management operations.
  * Provides CRUD endpoints for category entities with proper validation and error handling.
@@ -44,7 +46,8 @@ public class CategoryController {
      * 
      * @param search Search term for name field
      * @param name Filter by name (contains)
-    * @param departmentId Filter by department ID
+     * @param branchId Filter by branch ID
+     * @param departmentId Filter by department ID
      * @param createdFrom Filter created_at from (ISO-8601)
      * @param createdTo Filter created_at to (ISO-8601)
      * @param updatedFrom Filter updated_at from (ISO-8601)
@@ -59,6 +62,7 @@ public class CategoryController {
     public ResponseEntity<PaginatedResponse<CategoryResponseDTO>> getAllCategories(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String name,
+            @RequestParam(name = "branch_id", required = false) String branchId,
             @RequestParam(name = "department_id", required = false) String departmentId,
             @RequestParam(name = "created_from", required = false) String createdFrom,
             @RequestParam(name = "created_to", required = false) String createdTo,
@@ -69,11 +73,11 @@ public class CategoryController {
             @RequestParam(name = "sort_field", defaultValue = "createdAt") String sortField,
             @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection) {
         
-        log.debug("Getting categories with filters - search: {}, name: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
-            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
+        log.debug("Getting categories with filters - search: {}, name: {}, branchId: {}, departmentId: {}, createdFrom: {}, createdTo: {}, updatedFrom: {}, updatedTo: {}, page: {}, perPage: {}, sortField: {}, sortDirection: {}", 
+            search, name, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo, page, perPage, sortField, sortDirection);
         
         PaginatedResponse<CategoryResponseDTO> response = categoryService.findAllWithFilters(
-            search, name, departmentId, createdFrom, createdTo, updatedFrom, updatedTo,
+            search, name, branchId, departmentId, createdFrom, createdTo, updatedFrom, updatedTo,
             page, perPage, sortField, sortDirection);
         
         response.setMessage("Categories retrieved successfully");
@@ -154,6 +158,65 @@ public class CategoryController {
         categoryService.delete(id);
         ApiResponse<Void> response = ApiResponse.success("Category deleted successfully");
         
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get categories by branch ID.
+     * 
+     * @param branchId Branch ID
+     * @return List of categories in the branch
+     */
+    @GetMapping("/branch/{branchId}")
+    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getCategoriesByBranch(
+            @PathVariable String branchId) {
+
+        log.debug("Getting categories for branch ID: {}", branchId);
+
+        List<CategoryResponseDTO> categories = categoryService.findByBranchId(branchId);
+        ApiResponse<List<CategoryResponseDTO>> response = ApiResponse.success(
+                categories, "Categories retrieved successfully for branch");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get categories by department ID.
+     * 
+     * @param departmentId Department ID
+     * @return List of categories in the department
+     */
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getCategoriesByDepartment(
+            @PathVariable String departmentId) {
+
+        log.debug("Getting categories for department ID: {}", departmentId);
+
+        List<CategoryResponseDTO> categories = categoryService.findByDepartmentId(departmentId);
+        ApiResponse<List<CategoryResponseDTO>> response = ApiResponse.success(
+                categories, "Categories retrieved successfully for department");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get categories by branch ID and department ID.
+     * 
+     * @param branchId Branch ID
+     * @param departmentId Department ID
+     * @return List of categories in the branch and department
+     */
+    @GetMapping("/branch/{branchId}/department/{departmentId}")
+    public ResponseEntity<ApiResponse<List<CategoryResponseDTO>>> getCategoriesByBranchAndDepartment(
+            @PathVariable String branchId,
+            @PathVariable String departmentId) {
+
+        log.debug("Getting categories for branch ID: {} and department ID: {}", branchId, departmentId);
+
+        List<CategoryResponseDTO> categories = categoryService.findByBranchIdAndDepartmentId(branchId, departmentId);
+        ApiResponse<List<CategoryResponseDTO>> response = ApiResponse.success(
+                categories, "Categories retrieved successfully for branch and department");
+
         return ResponseEntity.ok(response);
     }
 }

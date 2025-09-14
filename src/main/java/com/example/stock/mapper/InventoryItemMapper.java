@@ -39,8 +39,10 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "department", ignore = true)
     @Mapping(target = "movements", ignore = true)
-    InventoryItem toEntity(InventoryItemCreateDTO createDTO); // fama modification besh tsir fel dto create 
+    InventoryItem toEntity(InventoryItemCreateDTO createDTO);
 
     /**
      * Maps InventoryItem entity to InventoryItemResponseDTO.
@@ -49,8 +51,6 @@ public interface InventoryItemMapper {
      * @param inventoryItem the inventory item entity
      * @return InventoryItemResponseDTO with complete inventory item information
      */
-    @Mapping(target = "inventoryItemCategoryId", source = "category.id")
-    @Mapping(target = "unitId", source = "unit.id")
     InventoryItemResponseDTO toResponseDTO(InventoryItem inventoryItem);
 
     /**
@@ -60,15 +60,13 @@ public interface InventoryItemMapper {
      * @param inventoryItem the inventory item entity
      * @return InventoryItemSummaryDTO with essential inventory item information
      */
-    @Mapping(target = "categoryName", source = "category.name")
-    @Mapping(target = "unitSymbol", source = "unit.symbol")
     InventoryItemSummaryDTO toSummaryDTO(InventoryItem inventoryItem);
 
     /**
      * Maps InventoryItemUpdateDTO to existing InventoryItem entity.
      * Updates only the provided fields, ignoring null values.
-     * Note: Relationships (category, unit) need to be set separately.
-     *
+     * Note: Relationships need to be set separately in service layer.
+     * 
      * @param updateDTO the inventory item update data
      * @param inventoryItem the existing inventory item entity to update
      */
@@ -77,6 +75,8 @@ public interface InventoryItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "unit", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "department", ignore = true)
     @Mapping(target = "movements", ignore = true)
     void updateEntityFromDTO(InventoryItemUpdateDTO updateDTO, @MappingTarget InventoryItem inventoryItem);
 
