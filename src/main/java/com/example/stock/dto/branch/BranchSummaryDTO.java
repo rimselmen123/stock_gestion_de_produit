@@ -22,8 +22,8 @@ public class BranchSummaryDTO {
     @JsonProperty("name")
     private String name;
 
-    @JsonProperty("location")
-    private String location;
+    @JsonProperty("description")
+    private String description;
 
     @JsonProperty("code")
     private String code;
@@ -37,14 +37,14 @@ public class BranchSummaryDTO {
     public String getDisplayName() {
         StringBuilder display = new StringBuilder();
         
-        // Format: "CODE - Name (Location)"
+        // Format: "CODE - Name (description)"
         if (code != null && !code.isBlank()) {
             display.append(code).append(" - ");
         }
         display.append(name);
         
-        if (location != null && !location.isBlank()) {
-            display.append(" (").append(location).append(")");
+        if (description != null && !description.isBlank()) {
+            display.append(" (").append(description).append(")");
         }
         
         // Indiquer si inactive

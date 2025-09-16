@@ -59,14 +59,14 @@ class BranchControllerTest {
         // Setup test data
         createDTO = BranchCreateDTO.builder()
                 .name("Main Branch")
-                .location("Downtown")
-                .code("MAIN")
-                .isActive(true)
+                .description("Downtown")
+                /* .code("MAIN")
+                .isActive(true) */
                 .build();
 
         updateDTO = BranchUpdateDTO.builder()
                 .name("Updated Branch")
-                .location("Uptown")
+                .description("Uptown")
                 .code("UPD")
                 .isActive(true)
                 .build();

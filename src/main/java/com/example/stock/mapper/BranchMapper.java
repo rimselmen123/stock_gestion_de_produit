@@ -17,7 +17,7 @@ public interface BranchMapper {
     /**
      * Convert Branch entity to BranchResponseDTO.
      */
-    @Mapping(target = "description", source = "location")
+    @Mapping(target = "description", source = "description")
     BranchResponseDTO toResponseDTO(Branch branch);
 
     /**
@@ -27,7 +27,7 @@ public interface BranchMapper {
     
     /**
      * Convert BranchCreateDTO to Branch entity.
-     * MapStruct automatically maps: name, location, code, isActive
+     * MapStruct automatically maps: name, description, code, isActive
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -38,7 +38,7 @@ public interface BranchMapper {
     
     /**
      * Update existing Branch entity from BranchUpdateDTO.
-     * MapStruct automatically updates: name, location, code, isActive (if not null)
+     * MapStruct automatically updates: name, description, code, isActive (if not null)
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

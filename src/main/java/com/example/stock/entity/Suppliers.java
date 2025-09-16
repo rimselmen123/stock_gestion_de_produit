@@ -97,7 +97,16 @@ public class Suppliers {
      */
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+    /*
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class AdditionalInfo()
+    {
 
+
+    } */
     /**
      * Automatically update the updatedAt field before entity update.
      */

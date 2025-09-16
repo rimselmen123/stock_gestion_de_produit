@@ -27,6 +27,7 @@ public class InventoryItemCreateDTO {
      * The name of the inventory item.
      * Must not be blank and cannot exceed 255 characters.
      */
+    @JsonProperty("name")
     @NotBlank(message = "Inventory item name is required")
     @Size(max = 255, message = "Inventory item name must not exceed 255 characters")
     private String name;
@@ -49,33 +50,33 @@ public class InventoryItemCreateDTO {
      * The category ID this item belongs to.
      * Must exist in categories table.
      */
-    @NotBlank(message = "Category ID is required")
     @JsonProperty("inventory_item_category_id")
+    @NotBlank(message = "Category ID is required")
     private String inventoryItemCategoryId;
 
     /**
      * The unit ID for this item.
      * Must exist in units table.
      */
-    @NotBlank(message = "Unit ID is required")
     @JsonProperty("unit_id")
+    @NotBlank(message = "Unit ID is required")
     private String unitId;
 
     /**
      * The threshold quantity for low stock alerts.
      * Must be a positive number.
      */
+    @JsonProperty("threshold_quantity")
     @NotNull(message = "Threshold quantity is required")
     @Positive(message = "Threshold quantity must be positive")
-    @JsonProperty("threshold_quantity")
     private Integer thresholdQuantity;
 
     /**
      * The quantity to reorder when stock is low.
      * Must be a positive number.
      */
+    @JsonProperty("reorder_quantity")
     @NotNull(message = "Reorder quantity is required")
     @Positive(message = "Reorder quantity must be positive")
-    @JsonProperty("reorder_quantity")
     private Integer reorderQuantity;
 }

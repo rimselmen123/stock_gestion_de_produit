@@ -62,7 +62,7 @@ GET /api/branches/stats/count              # Statistiques générales
 POST /api/branches
 {
   "name": "Succursale Paris",
-  "location": "75001 Paris",
+  "description": "75001 Paris",
   "code": "PAR01",
   "isActive": true
 }
@@ -81,7 +81,7 @@ GET /api/branches?search=paris&isActive=true&page=0&perPage=10&sortField=name&so
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Succursale Paris",
-    "location": "75001 Paris",
+    "description": "75001 Paris",
     "code": "PAR01",
     "isActive": true,
     "createdAt": "2025-09-10T10:30:00Z",

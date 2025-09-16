@@ -44,8 +44,11 @@ public class InventoryMovementController {
 	    @RequestParam(name = "sort_direction", defaultValue = "desc") String sortDirection,
 	    // Filters
 	    @RequestParam(name = "branch_id", required = false) String branchId,
+	    @RequestParam(name = "department_id", required = false) String departmentId,
 	    @RequestParam(name = "supplier_id", required = false) String supplierId,
 	    @RequestParam(name = "transaction_type", required = false) String transactionType,
+	    @RequestParam(name = "category", required = false) String category,
+	    @RequestParam(name = "date_range", required = false) String dateRange,
 	    @RequestParam(name = "item_name", required = false) String itemName,
 	    @RequestParam(name = "search", required = false) String globalSearch,
 	    @RequestParam(name = "qty_min", required = false) java.math.BigDecimal qtyMin,
@@ -68,7 +71,7 @@ public class InventoryMovementController {
 	Pageable pageable = PageRequest.of(page - 1, perPage, sort);
 
 	var filter = new InventoryMovementService.MovementSearchFilter(
-		branchId, supplierId, transactionType, itemName, globalSearch,
+		branchId, departmentId, supplierId, transactionType, category, dateRange, itemName, globalSearch,
 		qtyMin, qtyMax, priceMin, priceMax, expAfter, expBefore,
 		createdAfter, createdBefore, updatedAfter, updatedBefore
 	);

@@ -38,6 +38,19 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     private static final String DEPT_NOT_FOUND = "Department not found with id: ";
 
+    /**
+     * Maps API field names to entity field names for sorting
+     * @param field the field name from the API request
+     * @return the corresponding entity field name
+     */
+    private String mapSortField(String field) {
+        return switch (field) {
+            case "created", "created_at" -> "createdAt";
+            case "updated", "updated_at" -> "updatedAt";
+            default -> field;
+        };
+    }
+
     private final DepartmentRepository departmentRepository;
     private final BranchRepository branchRepository;
     private final InventoryItemCategoryRepository categoryRepository;
@@ -132,7 +145,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         // Build sort
         Sort sort = Sort.by(
             "DESC".equalsIgnoreCase(filter.getSortDirection()) ? Sort.Direction.DESC : Sort.Direction.ASC,
-            filter.getSortField()
+            mapSortField(filter.getSortField())
         );
         
         PageRequest pageRequest = PageRequest.of(filter.getPage(), filter.getSize(), sort);

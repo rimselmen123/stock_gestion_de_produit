@@ -49,7 +49,6 @@ class InventoryStockControllerTest {
                 .currentQuantity(new BigDecimal("10.500000"))
                 .averageUnitCost(new BigDecimal("2.000000"))
                 .totalValue(new BigDecimal("21.000000"))
-                .lastMovementDate(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -62,7 +61,6 @@ class InventoryStockControllerTest {
                 .currentQuantity(new BigDecimal("10.500000"))
                 .averageUnitCost(new BigDecimal("2.000000"))
                 .totalValue(new BigDecimal("21.000000"))
-                .lastMovementDate(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

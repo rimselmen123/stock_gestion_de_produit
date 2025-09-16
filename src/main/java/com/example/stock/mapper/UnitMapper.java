@@ -108,7 +108,7 @@ public interface UnitMapper {
         return UnitResponseDTO.BranchInfo.builder()
                 .id(branch.getId())
                 .name(branch.getName())
-                .description(branch.getLocation()) // Map location to description as per simplified response
+                .description(branch.getDescription()) // Map description to description as per simplified response
                 .build();
     }
 

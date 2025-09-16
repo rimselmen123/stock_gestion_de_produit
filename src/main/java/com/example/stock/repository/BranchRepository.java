@@ -127,12 +127,12 @@ public interface BranchRepository extends JpaRepository<Branch, String>, JpaSpec
     @Query("SELECT b FROM Branch b WHERE " +
            "(:search IS NULL OR :search = '' OR " +
            "   LOWER(b.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "   LOWER(COALESCE(b.location, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "   LOWER(COALESCE(b.description, '')) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "   LOWER(COALESCE(b.code, '')) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:name IS NULL OR :name = '' OR " +
            "   LOWER(b.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-           "(:location IS NULL OR :location = '' OR " +
-           "   LOWER(COALESCE(b.location, '')) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
+           "(:description IS NULL OR :description = '' OR " +
+           "   LOWER(COALESCE(b.description, '')) LIKE LOWER(CONCAT('%', :description, '%'))) AND " +
            "(:code IS NULL OR :code = '' OR " +
            "   LOWER(COALESCE(b.code, '')) LIKE LOWER(CONCAT('%', :code, '%'))) AND " +
            "(:isActive IS NULL OR b.isActive = :isActive) AND " +
@@ -141,7 +141,7 @@ public interface BranchRepository extends JpaRepository<Branch, String>, JpaSpec
     Page<Branch> findAllWithFilters(
         @Param("search") String search,
         @Param("name") String name,
-        @Param("location") String location,
+        @Param("description") String description,
         @Param("code") String code,
         @Param("isActive") Boolean isActive,
         @Param("createdAfter") LocalDateTime createdAfter,

@@ -144,7 +144,7 @@ public class BranchController {
         public ResponseEntity<PaginatedResponse<BranchResponseDTO>> getAllBranches(
                         @Parameter(description = "Global search term") @RequestParam(required = false) String search,
                         @Parameter(description = "Filter by name") @RequestParam(required = false) String name,
-                        @Parameter(description = "Filter by location") @RequestParam(required = false) String location,
+                        @Parameter(description = "Filter by description") @RequestParam(required = false) String description,
                         @Parameter(description = "Filter by code") @RequestParam(required = false) String code,
                         @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean isActive,
                         @Parameter(description = "Filter by creation date (after)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdAfter,
@@ -159,7 +159,7 @@ public class BranchController {
                 BranchFilterDTO filterDTO = BranchFilterDTO.builder()
                                 .search(search)
                                 .name(name)
-                                .location(location)
+                                .description(description)
                                 .code(code)
                                 .isActive(isActive)
                                 .createdAfter(createdAfter)

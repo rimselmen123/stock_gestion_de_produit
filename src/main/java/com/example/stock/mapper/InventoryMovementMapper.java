@@ -32,7 +32,7 @@ public interface InventoryMovementMapper {
     /**
      * Maps InventoryMovementCreateDTO to InventoryMovement entity.
      * Used when creating a new inventory movement from client request.
-     * Note: InventoryStock and Supplier relationships need to be set separately in service layer.
+     * Note: InventoryItem and Supplier relationships need to be set separately in service layer.
      *
      * @param createDTO the inventory movement creation data
      * @return InventoryMovement entity ready for persistence
@@ -42,30 +42,28 @@ public interface InventoryMovementMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "inventoryItem", ignore = true)
-    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
-    @Mapping(target = "supplierId", source = "supplierId")
-    @Mapping(target = "branchId", source = "branchId")
-    @Mapping(target = "destinationBranchId", source = "destinationBranchId")
-    @Mapping(target = "transactionType", source = "transactionType")
-    @Mapping(target = "unitPurchasePrice", source = "unitPurchasePrice")
-    @Mapping(target = "quantity", source = "quantity")
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "destinationDepartment", ignore = true)
+    @Mapping(target = "destinationBranch", ignore = true)
+    @Mapping(target = "departmentId", ignore = true)
+    @Mapping(target = "destinationDepartmentId", ignore = true)
     InventoryMovement toEntity(InventoryMovementCreateDTO createDTO);
 
     /**
      * Maps InventoryMovement entity to InventoryMovementResponseDTO.
      * Used when returning inventory movement data to client with embedded relationships.
+     * Note: Complex nested objects are handled by the DTO's fromEntity method.
      * 
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementResponseDTO with complete inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
-    @Mapping(target = "supplierId", source = "supplierId")
-    @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
-    @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
-    @Mapping(target = "supplier.id", source = "supplier.id")
-    @Mapping(target = "supplier.name", source = "supplier.name")
-    //@Mapping(target = "destinationBranchId", source = "destinationBranchId")
-    InventoryMovementResponseDTO toResponseDTO(InventoryMovement inventoryMovement);
+    default InventoryMovementResponseDTO toResponseDTO(InventoryMovement inventoryMovement) {
+        if (inventoryMovement == null) {
+            return null;
+        }
+        return InventoryMovementResponseDTO.fromEntity(inventoryMovement);
+    }
 
     /**
      * Maps InventoryMovement entity to InventoryMovementSummaryDTO.
@@ -74,13 +72,6 @@ public interface InventoryMovementMapper {
      * @param inventoryMovement the inventory movement entity
      * @return InventoryMovementSummaryDTO with essential inventory movement information
      */
-    @Mapping(target = "inventoryItemId", source = "inventoryItemId")
-    @Mapping(target = "supplierId", source = "supplierId")
-    @Mapping(target = "inventoryItem.id", source = "inventoryItem.id")
-    @Mapping(target = "inventoryItem.name", source = "inventoryItem.name")
-    @Mapping(target = "supplier.id", source = "supplier.id")
-    @Mapping(target = "supplier.name", source = "supplier.name")
-    // wasteReason & destinationBranchId mapped implicitly
     InventoryMovementSummaryDTO toSummaryDTO(InventoryMovement inventoryMovement);
 
     /**
@@ -101,6 +92,12 @@ public interface InventoryMovementMapper {
     @Mapping(target = "inventoryItem", ignore = true)
     @Mapping(target = "inventoryItemId", ignore = true)
     @Mapping(target = "destinationBranchId", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "destinationDepartment", ignore = true)
+    @Mapping(target = "destinationBranch", ignore = true)
+    @Mapping(target = "departmentId", ignore = true)
+    @Mapping(target = "destinationDepartmentId", ignore = true)
     void updateEntityFromDTO(InventoryMovementUpdateDTO updateDTO, @MappingTarget InventoryMovement inventoryMovement);
 
     /**

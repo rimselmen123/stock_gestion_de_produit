@@ -38,10 +38,10 @@ public class InventoryStockResponseDTO {
 
     @JsonProperty("total_value")
     private BigDecimal totalValue;
-
+/* 
     @JsonProperty("last_movement_date")
     private LocalDateTime lastMovementDate;
-
+ */
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
@@ -54,22 +54,5 @@ public class InventoryStockResponseDTO {
      * Embedded inventory item information.
      */
     @JsonProperty("inventory_item")
-    private InventoryItemEmbeddedDTO inventoryItem;
-
-    /**
-     * Nested DTO for embedded inventory item information.
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class InventoryItemEmbeddedDTO {
-        private String id;
-        private String name;
-        
-        @JsonProperty("threshold_quantity")
-        private Integer thresholdQuantity;
-    }
-
-    // Average/summary helpers will live in service layer if needed later.
+    private InventoryStockSummaryDTO inventoryItem;
 }

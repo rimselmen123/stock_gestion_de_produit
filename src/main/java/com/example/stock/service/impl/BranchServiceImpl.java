@@ -54,10 +54,10 @@ public class BranchServiceImpl implements BranchService {
         log.info("Creating new branch with name: {}", createDTO.getName());
         
         // Validate uniqueness
-        validateNameUniqueness(createDTO.getName(), null);
+        /* validateNameUniqueness(createDTO.getName(), null);
         if (StringUtils.hasText(createDTO.getCode())) {
             validateCodeUniqueness(createDTO.getCode(), null);
-        }
+        } */
         
         // Map to entity
         Branch branch = branchMapper.toEntity(createDTO);
@@ -173,7 +173,7 @@ public class BranchServiceImpl implements BranchService {
         Specification<Branch> spec = com.example.stock.specification.BranchSpecifications.withFilters(
             filterDTO.getSearch(),
             filterDTO.getName(),
-            filterDTO.getLocation(),
+            filterDTO.getDescription(),
             filterDTO.getCode(),
             filterDTO.getIsActive(),
             filterDTO.getCreatedAfter(),
@@ -339,17 +339,35 @@ public class BranchServiceImpl implements BranchService {
     }
     
     /**
+     * Maps API sort field names to entity field names.
+     */
+    private String mapSortField(String sortField) {
+        if (sortField == null || sortField.trim().isEmpty()) {
+            return "createdAt";
+        }
+        
+        return switch (sortField.toLowerCase()) {
+            case "created", "created_at" -> "createdAt";
+            case "updated", "updated_at" -> "updatedAt";
+            case "name", "description", "code", "isActive" -> sortField;
+            default -> "createdAt";
+        };
+    }
+
+    /**
      * Create Sort object from field and direction.
      */
     private Sort createSort(String sortField, String sortDirection) {
-        if (!StringUtils.hasText(sortField)) {
+        String mappedSortField = mapSortField(sortField);
+        
+        if (!StringUtils.hasText(mappedSortField)) {
             return Sort.by(Sort.Direction.ASC, "name");
         }
         
-        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) 
-            ? Sort.Direction.DESC 
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection)
+            ? Sort.Direction.DESC
             : Sort.Direction.ASC;
             
-        return Sort.by(direction, sortField);
+        return Sort.by(direction, mappedSortField);
     }
 }

@@ -156,8 +156,11 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
 
         Specification<InventoryMovement> spec = com.example.stock.specification.InventoryMovementSpecifications.build(
                 filter != null ? filter.branchId() : null,
+                filter != null ? filter.departmentId() : null,
                 filter != null ? filter.supplierId() : null,
                 type,
+                filter != null ? filter.category() : null,
+                filter != null ? filter.dateRange() : null,
                 filter != null ? filter.itemName() : null,
                 filter != null ? filter.globalSearch() : null,
                 filter != null ? filter.qtyMin() : null,

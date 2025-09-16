@@ -15,8 +15,11 @@ public interface InventoryMovementService {
 
     record MovementSearchFilter(
         String branchId,
+        String departmentId,
         String supplierId,
         String transactionType,
+        String category,
+        String dateRange,
         String itemName,
         String globalSearch,
         java.math.BigDecimal qtyMin,

@@ -1,5 +1,6 @@
 package com.example.stock.dto.branch;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,11 +26,13 @@ public class BranchResponseDTO {
     private String name;
 
     @JsonProperty("description")
-    private String description; // Renamed from location
+    private String description;
 
     @JsonProperty("created_at")
+    @JsonAlias({"created", "createdAt"}) // Accepts both names
     private LocalDateTime createdAt;
 
     @JsonProperty("updated_at")
+    @JsonAlias({"updated", "updatedAt"}) // Accepts both names
     private LocalDateTime updatedAt;
 }

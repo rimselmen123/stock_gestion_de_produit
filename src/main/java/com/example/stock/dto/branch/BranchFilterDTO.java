@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class BranchFilterDTO {
     
     /**
-     * Global search term (searches in name, location, code)
+     * Global search term (searches in name, description, code)
      */
     private String search;
     
@@ -31,9 +31,9 @@ public class BranchFilterDTO {
     private String name;
     
     /**
-     * Filter by specific location
+     * Filter by specific description
      */
-    private String location;
+    private String description;
     
     /**
      * Filter by specific code

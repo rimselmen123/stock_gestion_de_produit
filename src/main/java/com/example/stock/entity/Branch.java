@@ -10,7 +10,7 @@ import java.util.List;
 @Table(name = "branch",
        indexes = {
            @Index(name = "idx_branch_name", columnList = "name", unique = true),
-           @Index(name = "idx_branch_location", columnList = "location"),
+           @Index(name = "idx_branch_description", columnList = "description"),
            @Index(name = "idx_branch_code", columnList = "code", unique = true),
            @Index(name = "idx_branch_active", columnList = "is_active"),
            @Index(name = "idx_branch_active_name", columnList = "is_active, name")
@@ -27,8 +27,8 @@ public class Branch {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "location")
-    private String location; // facultatif, adresse ou ville
+    @Column(name = "description")
+    private String description; // facultatif, adresse ou ville
 
     @Column(name = "code", length = 20, unique = true)
     private String code; // Ex: "BR001", "PAR01"

@@ -22,9 +22,9 @@ public class BranchUpdateDTO {
     @Size(min = 2, max = 100, message = "Branch name must be between 2 and 100 characters")
     private String name;
 
-    @JsonProperty("location")
-    @Size(max = 255, message = "Location must not exceed 255 characters")
-    private String location;
+    @JsonProperty("description")
+    @Size(max = 255, message = "description must not exceed 255 characters")
+    private String description;
 
     @JsonProperty("code")
     @Size(min = 2, max = 20, message = "Branch code must be between 2 and 20 characters")

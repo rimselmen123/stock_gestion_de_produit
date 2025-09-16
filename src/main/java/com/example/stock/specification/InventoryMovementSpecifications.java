@@ -30,6 +30,47 @@ public final class InventoryMovementSpecifications {
             (type == null) ? cb.conjunction() : cb.equal(root.get("transactionType"), type);
     }
 
+    public static Specification<InventoryMovement> hasDepartmentId(String departmentId) {
+        return (root, query, cb) -> {
+            if (departmentId == null || departmentId.isBlank()) return cb.conjunction();
+            if (query != null) query.distinct(true);
+            var itemJoin = root.join("inventoryItem", JoinType.LEFT);
+            return cb.equal(itemJoin.get("departmentId"), departmentId);
+        };
+    }
+
+    public static Specification<InventoryMovement> hasCategory(String categoryId) {
+        return (root, query, cb) -> {
+            if (categoryId == null || categoryId.isBlank()) return cb.conjunction();
+            if (query != null) query.distinct(true);
+            var itemJoin = root.join("inventoryItem", JoinType.LEFT);
+            return cb.equal(itemJoin.get("inventoryItemCategoryId"), categoryId);
+        };
+    }
+
+    public static Specification<InventoryMovement> hasDateRange(String dateRange) {
+        return (root, query, cb) -> {
+            if (dateRange == null || dateRange.isBlank()) return cb.conjunction();
+            
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime fromDate;
+            
+            switch (dateRange.toLowerCase()) {
+                case "today":
+                    fromDate = now.toLocalDate().atStartOfDay();
+                    return cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate);
+                case "week":
+                    fromDate = now.minusWeeks(1);
+                    return cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate);
+                case "month":
+                    fromDate = now.minusMonths(1);
+                    return cb.greaterThanOrEqualTo(root.get("createdAt"), fromDate);
+                default:
+                    return cb.conjunction();
+            }
+        };
+    }
+
     public static Specification<InventoryMovement> itemNameContains(String name) {
         return (root, query, cb) -> {
             if (name == null || name.isBlank()) return cb.conjunction();
@@ -101,8 +142,11 @@ public final class InventoryMovementSpecifications {
      */
     public static Specification<InventoryMovement> build(
         String branchId,
+        String departmentId,
         String supplierId,
         InventoryMovement.TransactionType transactionType,
+        String categoryId,
+        String dateRange,
         String itemName,
         String globalSearch,
         BigDecimal qtyMin,
@@ -118,8 +162,11 @@ public final class InventoryMovementSpecifications {
     ) {
         return Specification.allOf(
             hasBranchId(branchId),
+            hasDepartmentId(departmentId),
             hasSupplierId(supplierId),
             hasTransactionType(transactionType),
+            hasCategory(categoryId),
+            hasDateRange(dateRange),
             itemNameContains(itemName),
             textSearch(globalSearch),
             quantityMin(qtyMin),

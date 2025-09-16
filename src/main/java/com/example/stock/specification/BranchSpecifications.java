@@ -23,7 +23,7 @@ public class BranchSpecifications {
     
     // Field name constants
     private static final String FIELD_NAME = "name";
-    private static final String FIELD_LOCATION = "location";
+    private static final String FIELD_DESCRIPTION = "description";
     private static final String FIELD_CODE = "code";
     private static final String FIELD_IS_ACTIVE = "isActive";
     private static final String FIELD_CREATED_AT = "createdAt";
@@ -39,7 +39,7 @@ public class BranchSpecifications {
     public static Specification<Branch> withFilters(
             String search,
             String name,
-            String location,
+            String description,
             String code,
             Boolean isActive,
             LocalDateTime createdAfter,
@@ -53,7 +53,7 @@ public class BranchSpecifications {
                 String searchPattern = "%" + search.toLowerCase() + "%";
                 Predicate searchPredicate = cb.or(
                     cb.like(cb.lower(root.get(FIELD_NAME)), searchPattern),
-                    cb.like(cb.lower(cb.coalesce(root.get(FIELD_LOCATION), "")), searchPattern),
+                    cb.like(cb.lower(cb.coalesce(root.get(FIELD_DESCRIPTION), "")), searchPattern),
                     cb.like(cb.lower(cb.coalesce(root.get(FIELD_CODE), "")), searchPattern)
                 );
                 predicates.add(searchPredicate);
@@ -65,10 +65,10 @@ public class BranchSpecifications {
                 predicates.add(cb.like(cb.lower(root.get(FIELD_NAME)), namePattern));
             }
 
-            // Specific location filter
-            if (StringUtils.hasText(location)) {
-                String locationPattern = "%" + location.toLowerCase() + "%";
-                predicates.add(cb.like(cb.lower(cb.coalesce(root.get(FIELD_LOCATION), "")), locationPattern));
+            // Specific description filter
+            if (StringUtils.hasText(description)) {
+                String descriptionPattern = "%" + description.toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(cb.coalesce(root.get(FIELD_DESCRIPTION), "")), descriptionPattern));
             }
 
             // Specific code filter
@@ -122,15 +122,15 @@ public class BranchSpecifications {
     }
 
     /**
-     * Filter by location containing (case-insensitive).
+     * Filter by description containing (case-insensitive).
      */
-    public static Specification<Branch> locationContains(String location) {
+    public static Specification<Branch> descriptionContains(String description) {
         return (root, query, cb) -> {
-            if (!StringUtils.hasText(location)) {
+            if (!StringUtils.hasText(description)) {
                 return cb.conjunction(); // No filter
             }
-            String pattern = "%" + location.toLowerCase() + "%";
-            return cb.like(cb.lower(cb.coalesce(root.get("location"), "")), pattern);
+            String pattern = "%" + description.toLowerCase() + "%";
+            return cb.like(cb.lower(cb.coalesce(root.get("description"), "")), pattern);
         };
     }
 
@@ -167,7 +167,7 @@ public class BranchSpecifications {
     }
 
     /**
-     * Global search across name, location, and code.
+     * Global search across name, description, and code.
      */
     public static Specification<Branch> globalSearch(String search) {
         return (root, query, cb) -> {
@@ -178,7 +178,7 @@ public class BranchSpecifications {
             String pattern = "%" + search.toLowerCase() + "%";
             return cb.or(
                 cb.like(cb.lower(root.get("name")), pattern),
-                cb.like(cb.lower(cb.coalesce(root.get("location"), "")), pattern),
+                cb.like(cb.lower(cb.coalesce(root.get("description"), "")), pattern),
                 cb.like(cb.lower(cb.coalesce(root.get("code"), "")), pattern)
             );
         };

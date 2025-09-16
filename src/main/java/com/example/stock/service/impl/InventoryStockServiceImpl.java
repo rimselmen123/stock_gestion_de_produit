@@ -41,7 +41,7 @@ public class InventoryStockServiceImpl implements InventoryStockService {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         page = Math.max(page, 1);
         size = Math.min(Math.max(size, 1), 100);
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, mapSortField(sortField)));
         Specification<InventoryStock> spec = InventoryStockSpecifications.build(
                 filters.branchId(),
                 filters.departmentId(),
@@ -78,7 +78,7 @@ public class InventoryStockServiceImpl implements InventoryStockService {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         page = Math.max(page, 1);
         size = Math.min(Math.max(size, 1), 100);
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, mapSortField(sortField)));
         Specification<InventoryStock> spec = InventoryStockSpecifications.build(
                 filters.branchId(),
                 filters.departmentId(),
@@ -118,5 +118,27 @@ public class InventoryStockServiceImpl implements InventoryStockService {
         InventoryStock stock = inventoryStockRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("InventoryStock", id));
         inventoryStockRepository.delete(stock);
+    }
+
+    /**
+     * Maps frontend sort field names to entity field names.
+     * Handles the mismatch between frontend snake_case conventions and backend camelCase.
+     * 
+     * @param sortField the sort field from frontend API request
+     * @return the corresponding entity field name
+     */
+    private String mapSortField(String sortField) {
+        return switch (sortField) {
+            case "created" -> "createdAt";
+            case "updated" -> "updatedAt";
+            case "current_quantity" -> "currentQuantity";
+            case "average_unit_cost" -> "averageUnitCost";
+            case "total_value" -> "totalValue";
+            case "last_movement_date" -> "lastMovementDate";
+            case "inventory_item_id" -> "inventoryItemId";
+            case "branch_id" -> "branchId";
+            case "department_id" -> "departmentId";
+            default -> sortField; // Return as-is if no mapping needed
+        };
     }
 }
