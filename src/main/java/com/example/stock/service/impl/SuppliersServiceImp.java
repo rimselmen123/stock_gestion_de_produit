@@ -2,6 +2,7 @@ package com.example.stock.service.impl;
 
 import com.example.stock.dto.common.PaginatedResponse;
 import com.example.stock.dto.common.PaginationInfo;
+import com.example.stock.dto.suppliers.SupplierAdditionalInfoDTO;
 import com.example.stock.dto.suppliers.SupplierCreateDTO;
 import com.example.stock.dto.suppliers.SupplierResponseDTO;
 import com.example.stock.dto.suppliers.SupplierUpdateDTO;
@@ -11,6 +12,7 @@ import com.example.stock.exception.ResourceNotFoundException;
 import com.example.stock.mapper.SuppliersMapper;
 import com.example.stock.repository.SuppliersRepository;
 import com.example.stock.service.SuppliersService;
+import com.example.stock.validation.SupplierAdditionalInfoValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,6 +48,7 @@ public class SuppliersServiceImp implements SuppliersService {
 
     private final SuppliersRepository suppliersRepository;
     private final SuppliersMapper suppliersMapper;
+    private final SupplierAdditionalInfoValidator additionalInfoValidator;
 
     @Override
     @Transactional(readOnly = true)
@@ -188,55 +191,91 @@ public class SuppliersServiceImp implements SuppliersService {
     public SupplierResponseDTO create(SupplierCreateDTO createDTO) {
         log.info("Creating new supplier with name: {}", createDTO.getName());
 
-        // Check if supplier with same name already exists
-        if (suppliersRepository.existsByName(createDTO.getName())) {
-            throw new IllegalArgumentException("Supplier with name '" + createDTO.getName() + "' already exists");
+        try {
+            // Check if supplier with same name already exists
+            if (suppliersRepository.existsByName(createDTO.getName())) {
+                throw new IllegalArgumentException("Supplier with name '" + createDTO.getName() + "' already exists");
+            }
+
+            // Check if supplier with same email already exists (if email is provided)
+            if (createDTO.getEmail() != null && !createDTO.getEmail().trim().isEmpty() 
+                    && suppliersRepository.existsByEmail(createDTO.getEmail())) {
+                throw new IllegalArgumentException("Supplier with email '" + createDTO.getEmail() + "' already exists");
+            }
+
+            // Validate additional info if provided
+            if (createDTO.getAdditionalInfo() != null) {
+                log.debug("Validating supplier additional info");
+                validateAdditionalInfo(createDTO.getAdditionalInfo());
+            }
+
+            Suppliers supplier = suppliersMapper.toEntity(createDTO);
+            supplier.setId(UUID.randomUUID().toString());
+            supplier.setCreatedAt(LocalDateTime.now());
+            supplier.setUpdatedAt(LocalDateTime.now());
+
+            // Handle additional info conversion manually
+            if (createDTO.getAdditionalInfo() != null) {
+                String additionalInfoJson = suppliersMapper.additionalInfoToJson(createDTO.getAdditionalInfo());
+                supplier.setAdditionalInfo(additionalInfoJson);
+            }
+
+            Suppliers savedSupplier = suppliersRepository.save(supplier);
+            
+            log.info("Successfully created supplier with ID: {}", savedSupplier.getId());
+            return convertToResponseDTO(savedSupplier);
+            
+        } catch (Exception e) {
+            log.error("Error creating supplier: {}", e.getMessage(), e);
+            throw e;
         }
-
-        // Check if supplier with same email already exists (if email is provided)
-        if (createDTO.getEmail() != null && !createDTO.getEmail().trim().isEmpty() 
-                && suppliersRepository.existsByEmail(createDTO.getEmail())) {
-            throw new IllegalArgumentException("Supplier with email '" + createDTO.getEmail() + "' already exists");
-        }
-
-        Suppliers supplier = suppliersMapper.toEntity(createDTO);
-        supplier.setId(UUID.randomUUID().toString());
-        supplier.setCreatedAt(LocalDateTime.now());
-        supplier.setUpdatedAt(LocalDateTime.now());
-
-        Suppliers savedSupplier = suppliersRepository.save(supplier);
-        
-        log.info("Successfully created supplier with ID: {}", savedSupplier.getId());
-        return suppliersMapper.toResponseDTO(savedSupplier);
     }
 
     @Override
     public SupplierResponseDTO update(String id, SupplierUpdateDTO updateDTO) {
         log.info("Updating supplier with ID: {}", id);
 
-        Suppliers existingSupplier = suppliersRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(SUPPLIER_ENTITY, id));
+        try {
+            Suppliers existingSupplier = suppliersRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException(SUPPLIER_ENTITY, id));
 
-        // Check if another supplier with same name already exists
-        if (!existingSupplier.getName().equals(updateDTO.getName()) 
-                && suppliersRepository.existsByName(updateDTO.getName())) {
-            throw new IllegalArgumentException("Supplier with name '" + updateDTO.getName() + "' already exists");
+            // Check if another supplier with same name already exists
+            if (!existingSupplier.getName().equals(updateDTO.getName()) 
+                    && suppliersRepository.existsByName(updateDTO.getName())) {
+                throw new IllegalArgumentException("Supplier with name '" + updateDTO.getName() + "' already exists");
+            }
+
+            // Check if another supplier with same email already exists (if email is provided)
+            if (updateDTO.getEmail() != null && !updateDTO.getEmail().trim().isEmpty()
+                    && !updateDTO.getEmail().equals(existingSupplier.getEmail())
+                    && suppliersRepository.existsByEmail(updateDTO.getEmail())) {
+                throw new IllegalArgumentException("Supplier with email '" + updateDTO.getEmail() + "' already exists");
+            }
+
+            // Validate additional info if provided
+            if (updateDTO.getAdditionalInfo() != null) {
+                log.debug("Validating supplier additional info for update");
+                validateAdditionalInfo(updateDTO.getAdditionalInfo());
+            }
+
+            suppliersMapper.updateEntityFromDTO(updateDTO, existingSupplier);
+            existingSupplier.setUpdatedAt(LocalDateTime.now());
+
+            // Handle additional info conversion manually
+            if (updateDTO.getAdditionalInfo() != null) {
+                String additionalInfoJson = suppliersMapper.additionalInfoToJson(updateDTO.getAdditionalInfo());
+                existingSupplier.setAdditionalInfo(additionalInfoJson);
+            }
+
+            Suppliers updatedSupplier = suppliersRepository.save(existingSupplier);
+            
+            log.info("Successfully updated supplier with ID: {}", updatedSupplier.getId());
+            return convertToResponseDTO(updatedSupplier);
+            
+        } catch (Exception e) {
+            log.error("Error updating supplier: {}", e.getMessage(), e);
+            throw e;
         }
-
-        // Check if another supplier with same email already exists (if email is provided)
-        if (updateDTO.getEmail() != null && !updateDTO.getEmail().trim().isEmpty()
-                && !updateDTO.getEmail().equals(existingSupplier.getEmail())
-                && suppliersRepository.existsByEmail(updateDTO.getEmail())) {
-            throw new IllegalArgumentException("Supplier with email '" + updateDTO.getEmail() + "' already exists");
-        }
-
-        suppliersMapper.updateEntityFromDTO(updateDTO, existingSupplier);
-        existingSupplier.setUpdatedAt(LocalDateTime.now());
-
-        Suppliers updatedSupplier = suppliersRepository.save(existingSupplier);
-        
-        log.info("Successfully updated supplier with ID: {}", updatedSupplier.getId());
-        return suppliersMapper.toResponseDTO(updatedSupplier);
     }
 
     @Override
@@ -381,5 +420,38 @@ public class SuppliersServiceImp implements SuppliersService {
             log.warn("Invalid date format for field {}: from={}, to={}", fieldName, fromDate, toDate);
             // Skip invalid date filters rather than throwing exception
         }
+    }
+
+    /**
+     * Validates additional info using the professional validator.
+     * 
+     * @param additionalInfo the additional info to validate
+     * @throws RuntimeException if validation fails
+     */
+    private void validateAdditionalInfo(SupplierAdditionalInfoDTO additionalInfo) {
+        try {
+            additionalInfoValidator.validate(additionalInfo);
+        } catch (Exception e) {
+            log.error("Additional info validation failed", e);
+            throw new RuntimeException("Additional info validation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Converts a Suppliers entity to SupplierResponseDTO with proper additionalInfo handling.
+     * 
+     * @param supplier the supplier entity
+     * @return the response DTO
+     */
+    private SupplierResponseDTO convertToResponseDTO(Suppliers supplier) {
+        SupplierResponseDTO responseDTO = suppliersMapper.toResponseDTO(supplier);
+        
+        // Handle additional info conversion manually
+        if (supplier.getAdditionalInfo() != null && !supplier.getAdditionalInfo().trim().isEmpty()) {
+            SupplierAdditionalInfoDTO additionalInfo = suppliersMapper.jsonToAdditionalInfo(supplier.getAdditionalInfo());
+            responseDTO.setAdditionalInfo(additionalInfo);
+        }
+        
+        return responseDTO;
     }
 }
