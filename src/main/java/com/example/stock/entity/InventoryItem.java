@@ -12,7 +12,9 @@ import java.util.List;
            @Index(name = "idx_inventory_item_name", columnList = "name"),
            @Index(name = "idx_inventory_item_branch", columnList = "branch_id"),
            @Index(name = "idx_inventory_item_department", columnList = "department_id"),
-           @Index(name = "idx_inventory_item_branch_dept", columnList = "branch_id, department_id")
+           @Index(name = "idx_inventory_item_branch_dept", columnList = "branch_id, department_id"
+           
+           )
        })
 @Data
 @NoArgsConstructor
@@ -68,7 +70,11 @@ public class InventoryItem {
     // Relation avec inventory movement (history). No cascade REMOVE from item side to preserve history.
     @OneToMany(mappedBy = "inventoryItem")
     private List<InventoryMovement> movements;
-
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tax_id", nullable = false)
+    private Tax tax;
+    
     @PreUpdate
     void onUpdate() {
         updatedAt = LocalDateTime.now();

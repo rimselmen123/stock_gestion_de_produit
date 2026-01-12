@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * Professional JSON utility class for serialization and deserialization operations.
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @author Development Team
  * @since 1.0
  */
-@Component
+
 @Slf4j
 public class JsonUtils {
 

@@ -13,26 +13,29 @@ import java.util.List;
 
 /**
  * Repository interface for InventoryItemCategory entity operations.
- * Provides CRUD operations and custom query methods for InventoryItemCategory entities.
+ * Provides CRUD operations and custom query methods for InventoryItemCategory
+ * entities.
  * 
  * @author Generated
  * @since 1.0
  */
 @Repository
-public interface InventoryItemCategoryRepository extends JpaRepository<InventoryItemCategory, String>, JpaSpecificationExecutor<InventoryItemCategory> {
-    
+public interface InventoryItemCategoryRepository
+        extends JpaRepository<InventoryItemCategory, String>, JpaSpecificationExecutor<InventoryItemCategory> {
+
     /**
-     * Find categories by name containing the specified text (case-insensitive) with pagination.
+     * Find categories by name containing the specified text (case-insensitive) with
+     * pagination.
      * 
-     * @param name the search term for name field
+     * @param name     the search term for name field
      * @param pageable pagination parameters
      * @return Page of matching InventoryItemCategory entities
      */
     @Query("SELECT c FROM InventoryItemCategory c WHERE " +
-           "LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+            "LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     Page<InventoryItemCategory> findByNameContainingIgnoreCase(
-        @Param("name") String name, 
-        Pageable pageable);
+            @Param("name") String name,
+            Pageable pageable);
 
     /**
      * Count how many InventoryItem entities reference the given category id.
@@ -59,7 +62,7 @@ public interface InventoryItemCategoryRepository extends JpaRepository<Inventory
     /**
      * Find categories by branch ID and department ID.
      * 
-     * @param branchId the branch ID
+     * @param branchId     the branch ID
      * @param departmentId the department ID
      * @return List of categories in the specified branch and department
      */
