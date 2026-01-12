@@ -46,9 +46,11 @@ public class MenuItemServiceImpl implements MenuItemService {
             log.info("Fetched {} menu items from POS", posItems.size());
 
             for (PosMenuItemDTO posItem : posItems) {
-                try {
+                try
+                {
                     syncMenuItem(posItem);
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     log.error("Error syncing menu item with POS ID: {}", posItem.getId(), e);
                     // Continue with next item instead of failing entire sync
                 }
