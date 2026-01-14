@@ -3,11 +3,13 @@ package com.example.stock.service.impl;
 import com.example.stock.dto.inventorymouvement.InventoryMovementCreateDTO;
 import com.example.stock.dto.inventorymouvement.InventoryMovementResponseDTO;
 import com.example.stock.dto.inventorymouvement.InventoryMovementUpdateDTO;
+import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryMovement;
 import com.example.stock.entity.InventoryMovement.TransactionType;
 import com.example.stock.entity.Suppliers;
 import com.example.stock.exception.ResourceNotFoundException;
 import com.example.stock.mapper.InventoryMovementMapper;
+import com.example.stock.repository.InventoryItemRepository;
 import com.example.stock.repository.InventoryMovementRepository;
 import com.example.stock.repository.SuppliersRepository;
 import com.example.stock.service.InventoryMovementService;
@@ -33,6 +35,7 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
     private final InventoryMovementRepository inventoryMovementRepository;
     private final SuppliersRepository suppliersRepository;
     private final InventoryMovementMapper inventoryMovementMapper;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Override
     @Transactional
@@ -88,22 +91,31 @@ public class InventoryMovementServiceImpl implements InventoryMovementService {
         }
 
         // Create and save the movement record
-        InventoryMovement movement = inventoryMovementMapper.toEntity(dto);
-        movement.setId(UUID.randomUUID().toString());
-        movement.setCreatedAt(LocalDateTime.now());
-        movement.setUpdatedAt(LocalDateTime.now());
+        // Create and save the movement record
+InventoryMovement movement = inventoryMovementMapper.toEntity(dto);
+movement.setId(UUID.randomUUID().toString());
+movement.setCreatedAt(LocalDateTime.now());
+movement.setUpdatedAt(LocalDateTime.now());
 
-        // Set supplier relation if provided
-        if (dto.getSupplierId() != null && !dto.getSupplierId().isBlank()) {
-            try {
-                Suppliers supplierRef = suppliersRepository.getReferenceById(dto.getSupplierId());
-                movement.setSupplier(supplierRef);
-            } catch (Exception ex) {
-                throw new ResourceNotFoundException("Supplier", dto.getSupplierId());
-            }
-        }
+// Set inventory item relation (REQUIRED)
+try {
+    InventoryItem itemRef = inventoryItemRepository.getReferenceById(dto.getInventoryItemId());
+    movement.setInventoryItem(itemRef);
+} catch (Exception ex) {
+    throw new ResourceNotFoundException("InventoryItem", dto.getInventoryItemId());
+}
 
-        InventoryMovement savedMovement = inventoryMovementRepository.save(movement);
+// Set supplier relation if provided
+if (dto.getSupplierId() != null && !dto.getSupplierId().isBlank()) {
+    try {
+        Suppliers supplierRef = suppliersRepository.getReferenceById(dto.getSupplierId());
+        movement.setSupplier(supplierRef);
+    } catch (Exception ex) {
+        throw new ResourceNotFoundException("Supplier", dto.getSupplierId());
+    }
+}
+
+InventoryMovement savedMovement = inventoryMovementRepository.save(movement);
         return inventoryMovementMapper.toResponseDTO(savedMovement);
     }
 

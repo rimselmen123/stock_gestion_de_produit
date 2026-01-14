@@ -77,4 +77,10 @@ public class InventoryItemUpdateDTO {
     @Positive(message = "Reorder quantity must be positive")
     @JsonProperty("reorder_quantity")
     private Integer reorderQuantity;
+
+    @JsonProperty("tax_id")
+    @NotBlank(message = "Tax ID is required")
+    private String taxId;
+
+
 }

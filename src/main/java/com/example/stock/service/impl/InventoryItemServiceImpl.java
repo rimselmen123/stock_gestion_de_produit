@@ -10,10 +10,12 @@ import com.example.stock.dto.unit.UnitResponseDTO;
 import com.example.stock.entity.InventoryItem;
 import com.example.stock.entity.InventoryItemCategory;
 import com.example.stock.entity.Unit;
+import com.example.stock.entity.Tax;
 import com.example.stock.exception.ForeignKeyConstraintException;
 import com.example.stock.exception.ResourceNotFoundException;
 import com.example.stock.repository.InventoryItemCategoryRepository;
 import com.example.stock.repository.InventoryItemRepository;
+import com.example.stock.repository.TaxRepository;
 import com.example.stock.repository.UnitRepository;
 import com.example.stock.service.InventoryItemService;
 import com.example.stock.specification.InventoryItemSpecifications;
@@ -55,6 +57,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemCategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
+    private final TaxRepository taxRepository;
     
     @Override
     @Transactional(readOnly = true)
@@ -323,6 +326,9 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         Unit unit = unitRepository.findById(createDTO.getUnitId())
             .orElseThrow(() -> new ForeignKeyConstraintException("unit_id", createDTO.getUnitId()));
         
+        Tax tax = taxRepository.findById(Long.parseLong(createDTO.getTaxId()))
+                .orElseThrow(() -> new ForeignKeyConstraintException("tax_id", createDTO.getTaxId()));
+        
         // Create entity
         InventoryItem inventoryItem = InventoryItem.builder()
             .id(UUID.randomUUID().toString())
@@ -333,6 +339,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
             .reorderQuantity(createDTO.getReorderQuantity())
             .category(category)
             .unit(unit)
+            .tax(tax)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .build();
@@ -357,6 +364,9 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         Unit unit = unitRepository.findById(updateDTO.getUnitId())
             .orElseThrow(() -> new ForeignKeyConstraintException("unit_id", updateDTO.getUnitId()));
         
+        Tax tax = taxRepository.findById(Long.parseLong(updateDTO.getTaxId()))
+                .orElseThrow(() -> new ForeignKeyConstraintException("tax_id", updateDTO.getTaxId()));
+        
         // Update fields
         existingInventoryItem.setName(updateDTO.getName());
         existingInventoryItem.setBranchId(updateDTO.getBranchId());
@@ -365,6 +375,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         existingInventoryItem.setReorderQuantity(updateDTO.getReorderQuantity());
         existingInventoryItem.setCategory(category);
         existingInventoryItem.setUnit(unit);
+        existingInventoryItem.setTax(tax);
         existingInventoryItem.setUpdatedAt(LocalDateTime.now());
         
         InventoryItem updatedInventoryItem = inventoryItemRepository.save(existingInventoryItem);
